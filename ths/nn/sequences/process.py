@@ -50,7 +50,7 @@ class ProcessTweetsGlove:
         print("Train data convert to numpy arrays")
         NN = TweetSentiment2LSTM(max_len, G)
         print("model created")
-        NN.build(dense_layer_units=1, first_layer_dropout=0.5, second_layer_dropout=0.7)
+        NN.build(first_layer_units = 256, dense_layer_units=1, first_layer_dropout=0.5, second_layer_dropout=0.7)
         print("model built")
         NN.summary()
         NN.compile(loss="binary_crossentropy", metrics=['binary_accuracy'])
