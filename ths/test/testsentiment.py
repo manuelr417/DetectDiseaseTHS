@@ -4,6 +4,6 @@ def main():
     print("Working:")
     P  = ProcessTweetsGlove("data/cleantextlabels.csv","data/glove.6B.50d.txt")
     P.process("data/model4.json", "data/model4.h5")
-#joder
+#joderme
 if __name__ == "__main__":
     main()
