@@ -1,6 +1,8 @@
-from ths.nn.sequences.tweets import TweetSentiment2LSTM
+from ths.nn.sequences.tweets import TweetSentiment2LSTM, TweetSentiment3LSTM, TweetSentiment2LSTM2Dense
 from ths.utils.files import GloveEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences
+from keras.callbacks import TensorBoard
+
 import numpy as np
 import csv
 import math
@@ -48,15 +50,16 @@ class ProcessTweetsGlove:
         X_train = np.array(X_train_pad)
         Y_train = np.array(Y_train)
         print("Train data convert to numpy arrays")
-        NN = TweetSentiment2LSTM(max_len, G)
+        NN = TweetSentiment2LSTM2Dense(max_len, G)
         print("model created")
-        NN.build(first_layer_units = 256, dense_layer_units=1, first_layer_dropout=0.5, second_layer_dropout=0.7)
+        NN.build(first_layer_units = 128, dense_layer_units=1, first_layer_dropout=0, second_layer_dropout=0)
         print("model built")
         NN.summary()
         NN.compile(loss="binary_crossentropy", metrics=['binary_accuracy'])
         print("model compiled")
         print("Begin training")
-        NN.fit(X_train, Y_train, epochs=80)
+        callback = TensorBoard(log_dir="/tmp/logs")
+        NN.fit(X_train, Y_train, epochs=80, callbacks=[callback])
         print("Model trained")
         X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         print("Test data mapped")
@@ -65,7 +68,7 @@ class ProcessTweetsGlove:
         X_test = np.array(X_test_pad)
         Y_test = np.array(Y_test)
         print("Test data converted to numpy arrays")
-        loss, acc = NN.evaluate(X_test, Y_test)
+        loss, acc = NN.evaluate(X_test, Y_test, callbacks=[callback])
         print("accuracy: ", acc)
         T = "I have a bad case of vomit"
         X_Predict = ["my zika is bad", "i love colombia", "my has been tested for ebola", "there is a diarrhea outbreak in the city"]
