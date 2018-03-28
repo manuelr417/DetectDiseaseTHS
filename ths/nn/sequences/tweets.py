@@ -63,8 +63,9 @@ class TweetSentiment2LSTM:
     def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None):
-        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks)
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0):
+        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split)
 
     def evaluate(self, X_test, Y_test):
         return self.model.evaluate(X_test, Y_test)
@@ -140,8 +141,8 @@ class TweetSentiment3LSTM:
     def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True):
-        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle)
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, validation_split=0.0):
+        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, validation_split=validation_split)
 
     def evaluate(self, X_test, Y_test):
         return self.model.evaluate(X_test, Y_test)
