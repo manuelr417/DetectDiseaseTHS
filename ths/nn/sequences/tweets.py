@@ -1,5 +1,5 @@
 import numpy as np
-np.random.seed(10)
+np.random.seed(7)
 from ths.utils.sentences import SentenceToEmbedding
 
 from keras.models import Model
@@ -7,7 +7,7 @@ from keras.layers import Dense, Input, Dropout, LSTM, Activation
 from keras.layers.embeddings import Embedding
 from keras.regularizers import l2
 
-np.random.seed(1)
+#np.random.seed(1)
 
 class TweetSentiment2LSTM:
 
@@ -64,7 +64,7 @@ class TweetSentiment2LSTM:
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
     def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0):
-        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
                        validation_split=validation_split)
 
     def evaluate(self, X_test, Y_test):
@@ -142,7 +142,7 @@ class TweetSentiment3LSTM:
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
     def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, validation_split=0.0):
-        self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, validation_split=validation_split)
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, validation_split=validation_split)
 
     def evaluate(self, X_test, Y_test):
         return self.model.evaluate(X_test, Y_test)
@@ -193,3 +193,34 @@ class TweetSentiment2LSTM2Dense(TweetSentiment2LSTM):
         X = Activation("sigmoid", name="SIGMOID_1")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
+
+class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2, l2 = None):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2)(embeddings)
+
+        # Dropout regularization
+        X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
+        # Second LSTM Layer
+        # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
+        # Second Layer Dropout
+        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2)(X)
+        X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        X = Dense(relu_dense_layer, name="DENSE_1", activation='relu', kernel_regularizer=l2)(X)
+        # Send to a Dense Layer with sigmoid activation
+        X = Dense(dense_layer_units, name="DENSE_2", kernel_regularizer=l2)(X)
+        X = Activation("softmax", name="softmax")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
