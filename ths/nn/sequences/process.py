@@ -2,7 +2,7 @@ from ths.nn.sequences.tweets import TweetSentiment2LSTM, TweetSentiment3LSTM, Tw
 from ths.utils.files import GloveEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences
 from keras.callbacks import TensorBoard
-from keras.optimizers import SGD, Adam, RMSprop
+from keras.optimizers import SGD, Adam, RMSprop, Nadam
 from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 from keras.regularizers import l2
@@ -248,15 +248,16 @@ class ProcessTweetsGloveOnePassSM:
         print("model created")
         kernel_regularizer = l2(0.001)
         kernel_regularizer = None
-        NN.build(first_layer_units = 64, second_layer_units=32, relu_dense_layer=16, dense_layer_units=3, first_layer_dropout=0.7, second_layer_dropout=0.5, l2 = kernel_regularizer)
+        NN.build(first_layer_units = 48, second_layer_units=24, relu_dense_layer=5, dense_layer_units=3, first_layer_dropout=0.3, second_layer_dropout=0.6, l2 = kernel_regularizer)
         print("model built")
         NN.summary()
-        sgd = SGD(lr=0.01, momentum=0.9, decay=0.1, nesterov=False)
-        rmsprop = RMSprop(decay=0.0001)
+        sgd = SGD(lr=0.001, momentum=0.09, decay=0.001, nesterov=True)
+        rmsprop = RMSprop(decay=0.003)
+        adam = Adam(lr=0.1, decay=0.05)
         NN.compile(optimizer=rmsprop, loss="categorical_crossentropy", metrics=['accuracy'])
         print("model compiled")
         print("Begin training")
-        callback = TensorBoard(log_dir="/tmp/logs2")
+        callback = TensorBoard(log_dir="/tmp/logs")
         history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.3 )
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)

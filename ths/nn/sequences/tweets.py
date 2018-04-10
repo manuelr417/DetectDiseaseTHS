@@ -3,7 +3,7 @@ np.random.seed(7)
 from ths.utils.sentences import SentenceToEmbedding
 
 from keras.models import Model
-from keras.layers import Dense, Input, Dropout, LSTM, Activation
+from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization
 from keras.layers.embeddings import Embedding
 from keras.regularizers import l2
 
@@ -27,7 +27,7 @@ class TweetSentiment2LSTM:
         embeddings = embeddings_layer(sentence_input)
         # First LSTM Layer
         #X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
-        X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+        X  = Bidirectional(LSTM(first_layer_units, return_sequences=True, name='LSTM_1'))(embeddings)
 
         # Dropout regularization
         X = Dropout(first_layer_dropout, name="DROPOUT_1") (X)
@@ -208,18 +208,22 @@ class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
         embeddings = embeddings_layer(sentence_input)
         # First LSTM Layer
         # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
-        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2)(embeddings)
+        X = Bidirectional(LSTM(first_layer_units, return_sequences=False, name='LSTM_1', kernel_regularizer=l2))(embeddings)
 
         # Dropout regularization
         X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
         # Second LSTM Layer
         # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
         # Second Layer Dropout
-        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2)(X)
-        X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
-        X = Dense(relu_dense_layer, name="DENSE_1", activation='relu', kernel_regularizer=l2)(X)
+        #X = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2)(X)
+        #X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        X = Dense(4*relu_dense_layer, name="DENSE_1", activation='relu', kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
+        X = Dense(relu_dense_layer, name="DENSE_2", activation='relu', kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
         # Send to a Dense Layer with sigmoid activation
-        X = Dense(dense_layer_units, name="DENSE_2", kernel_regularizer=l2)(X)
+        X = Dense(dense_layer_units, name="DENSE_3", kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
         X = Activation("softmax", name="softmax")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
