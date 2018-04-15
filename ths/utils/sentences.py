@@ -27,7 +27,9 @@ class SentenceToIndices:
             mapped_len = len(mapped)
             if mapped_len > max_len:
                 max_len = mapped_len
+                max_s = s
             result.append(mapped)
+        print(max_s)
         return result, max_len
 
 class PadSentences:
