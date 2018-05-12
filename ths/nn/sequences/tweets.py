@@ -3,7 +3,7 @@ np.random.seed(7)
 from ths.utils.sentences import SentenceToEmbedding
 
 from keras.models import Model
-from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization
+from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.regularizers import l2
 
@@ -208,7 +208,43 @@ class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
         embeddings = embeddings_layer(sentence_input)
         # First LSTM Layer
         # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
-        X = Bidirectional(LSTM(first_layer_units, return_sequences=False, name='LSTM_1', kernel_regularizer=l2))(embeddings)
+        #X = Bidirectional(LSTM(first_layer_units, return_sequences=True, name='LSTM_1'), name="DB_LSTM1")(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+
+        # Dropout regularization
+        X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
+        # Second LSTM Layer
+        # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
+        # Second Layer Dropout
+        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_2")(X)
+        X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        X = Dense(relu_dense_layer, name="DENSE_1", activation='relu', kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
+        X = Dense(int(relu_dense_layer/2), name="DENSE_2", activation='relu', kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
+        # Send to a Dense Layer with sigmoid activation
+        X = Dense(dense_layer_units, name="DENSE_3", kernel_regularizer=l2)(X)
+        X = BatchNormalization()(X)
+        X = Activation("softmax", name="softmax")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+
+class TweetSentimentGRUSM(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2, l2 = None):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        X = Bidirectional(GRU(first_layer_units, return_sequences=False, name='GRU'), name="BD_GRU")(embeddings)
 
         # Dropout regularization
         X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
@@ -228,3 +264,207 @@ class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
         # create the model
         self.model = Model(input=sentence_input, output=X)
 
+
+class TweetSentimentCNN:
+    def __init__(self, max_sentence_len, embedding_builder):
+        self.max_sentence_len = max_sentence_len
+        self.embedding_builder = embedding_builder
+        self.model = None
+
+    def build(self, first_dropout=0.0, padding='same', filters=250, kernel_size=5, strides=1, activation='relu',
+              dense_units=64, second_dropout=0.0):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        #embeddings = Embedding(5000,
+        #                       self.embedding_builder.get_dimensions(),input_length= self.max_sentence_len )(sentence_input)
+
+        print("embedding: ", embeddings)
+        # First Dropout
+        #X = Dropout(first_dropout, name="DROPOUT_1")(embeddings)
+        #print("embeddings.shape: ", embeddings.shape)
+
+
+        X = Reshape((self.max_sentence_len, self.embedding_builder.get_dimensions(), 1))(embeddings)
+
+        # 1D Convolutional Neural Network
+        X = Conv1D(filters=filters, kernel_size=kernel_size, padding=padding, activation=activation,
+                   name="CONV1D_1")(embeddings)
+
+        # 1D Pooling layer
+        X = GlobalAveragePooling1D(name="GLOBALMAXPOOLING1D_1")(X)
+        #X =
+        #X = AveragePooling1D(name="GLOBALMAXPOOLING1D_1")(X)
+
+        #X = Conv1D(filters=filters, kernel_size=kernel_size, padding=padding, activation=activation,
+        #           name="CONV1D_2")(X)
+        #X = AveragePooling1D(name="GLOBALMAXPOOLING1D_2")(X)
+        # Dense Layers
+        X = Flatten()(X)
+
+        X = Dense(units=dense_units, activation='relu', name="DENSE_1")(X)
+
+        X = Dropout(second_dropout, name="DROPOUT_2")(X)
+        X = Dense(units=16, activation='relu', name="DENSE_2")(X)
+        X = Dropout(second_dropout, name="DROPOUT_3")(X)
+
+        # Final layer
+        X = Dense(3, activation= "softmax")(X)
+        # create the model
+
+        self.model = Model(input=sentence_input, output=X)
+
+    def pretrained_embedding_layer(self):
+        # create Keras embedding layer
+        word_to_idx, idx_to_word, word_embeddings = self.embedding_builder.read_embedding()
+        #vocabulary_len = len(word_to_idx) + 1
+        vocabulary_len = len(word_to_idx)
+        emb_dimension = self.embedding_builder.get_dimensions()
+        # get the matrix for the sentences
+        embedding_matrix = word_embeddings
+        #embedding_matrix = np.vstack([word_embeddings, np.zeros((vocabulary_len,))])
+
+        # embedding layer
+        embedding_layer = Embedding(input_dim=vocabulary_len, output_dim=emb_dimension, trainable=False, name="EMBEDDING")
+        embedding_layer.build((None,))
+        embedding_layer.set_weights([embedding_matrix])
+        return embedding_layer
+
+    def summary(self):
+        self.model.summary()
+
+    def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
+        self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split)
+
+    def evaluate(self, X_test, Y_test):
+        return self.model.evaluate(X_test, Y_test)
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def get_sentiment(self, prediction):
+        return np.argmax(prediction)
+
+    #def sentiment_string(self, sentiment):
+    #    return self.sentiment_map[sentiment]
+
+    def save_model(self, json_filename, h5_filename):
+        json_model = self.model.to_json()
+        with open(json_filename, "w") as json_file:
+            json_file.write(json_model)
+        self.model.save_weights(h5_filename)
+        return
+
+
+class TweetSentiment2DCNN:
+    def __init__(self, max_sentence_len, embedding_builder):
+        self.max_sentence_len = max_sentence_len
+        self.embedding_builder = embedding_builder
+        self.model = None
+
+    def build(self, first_dropout=0.0, padding='same', filters=250, kernel_size=5, strides=(1,1), activation='relu',
+              dense_units=128, second_dropout=0.0):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        #embeddings = Embedding(5000,
+        #                       self.embedding_builder.get_dimensions(),input_length= self.max_sentence_len )(sentence_input)
+
+        print("embedding: ", embeddings)
+        # First Dropout
+        #X = Dropout(first_dropout, name="DROPOUT_1")(embeddings)
+        #print("embeddings.shape: ", embeddings.shape)
+        # 1D Convolutional Neural Network
+
+        X = Reshape((self.max_sentence_len, self.embedding_builder.get_dimensions(), 1))(embeddings)
+        print("X", X)
+        X = Conv2D(filters=filters, kernel_size=kernel_size, strides=(2,2), padding=padding, activation=activation,
+                   name="CONV2D_1")(X)
+        print("Conv2D 1: ", X)
+        # 1D Pooling layer
+        pool_dim = int((self.max_sentence_len/2))
+        pool_size = (2,2)
+        print("pool_size: ", pool_size)
+        X = MaxPooling2D(pool_size=pool_size, name="MAXPOOLIN2D_1")(X)
+        print("Max Pool: ", X)
+        X = Dropout(first_dropout, name="DROPOUT_1")(X)
+        #X = AveragePooling1D(name="GLOBALMAXPOOLING1D_1")(X)
+        #new_shape  = X.output_shape() + (1,)
+        #print("new_shape: ", new_shape)
+        #X = Reshape(new_shape)(X)
+
+        X = Conv2D(filters=2*filters, kernel_size=kernel_size, strides=strides, padding=padding, activation=activation,
+                  name="CONV2D_2")(X)
+        pool_dim = int(pool_dim/2)
+        pool_size = (2, 2)
+        X = MaxPooling2D(pool_size=pool_size, name="MAXPOOLIN2D_2")(X)
+        #X = AveragePooling1D(name="GLOBALMAXPOOLING1D_2")(X)
+        X = Dropout(first_dropout, name="DROPOUT_2")(X)
+
+        # Dense Layers
+        X = Flatten()(X)
+        X = Dense(units=dense_units, activation='relu', name="DENSE_1")(X)
+
+        X = Dropout(second_dropout, name="DROPOUT_3")(X)
+
+        X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_2")(X)
+        X = Dropout(second_dropout, name="DROPOUT_4")(X)
+
+        # Final layer
+        X = Dense(3, activation= "softmax")(X)
+        # create the model
+
+        self.model = Model(input=sentence_input, output=X)
+
+    def pretrained_embedding_layer(self):
+        # create Keras embedding layer
+        word_to_idx, idx_to_word, word_embeddings = self.embedding_builder.read_embedding()
+        #vocabulary_len = len(word_to_idx) + 1
+        vocabulary_len = len(word_to_idx)
+        emb_dimension = self.embedding_builder.get_dimensions()
+        # get the matrix for the sentences
+        embedding_matrix = word_embeddings
+        #embedding_matrix = np.vstack([word_embeddings, np.zeros((vocabulary_len,))])
+
+        # embedding layer
+        embedding_layer = Embedding(input_dim=vocabulary_len, output_dim=emb_dimension, trainable=False, name="EMBEDDING")
+        embedding_layer.build((None,))
+        embedding_layer.set_weights([embedding_matrix])
+        return embedding_layer
+
+    def summary(self):
+        self.model.summary()
+
+    def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
+        self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split)
+
+    def evaluate(self, X_test, Y_test):
+        return self.model.evaluate(X_test, Y_test)
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def get_sentiment(self, prediction):
+        return np.argmax(prediction)
+
+    #def sentiment_string(self, sentiment):
+    #    return self.sentiment_map[sentiment]
+
+    def save_model(self, json_filename, h5_filename):
+        json_model = self.model.to_json()
+        with open(json_filename, "w") as json_file:
+            json_file.write(json_model)
+        self.model.save_weights(h5_filename)
+        return

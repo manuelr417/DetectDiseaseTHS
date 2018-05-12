@@ -4,7 +4,7 @@ from ths.utils.datasets import TweetDataSetGenerator
 import csv
 
 def main():
-    T  = TweetDataSetGenerator("data/cleantextlabels2.csv")
+    T  = TweetDataSetGenerator("data/cleantextlabels3.csv")
     data, count, dictionary, reverse_dictionary = T.get_dataset()
     S = SkipGrams(text_data=data, dictionary_size=10000)
     targets, contexts, labels = S.build()
@@ -43,7 +43,7 @@ def main():
     v2 = embedding[0][j]
     print("v1-v2", v1 - v2)
 
-    with open("trained/embedding1.csv", "w") as f:
+    with open("trained/embedding3.csv", "w") as f:
         out_f = csv.writer(f, delimiter=' ')
         for word, idx in dictionary.items():
             e = embedding[0][idx]
