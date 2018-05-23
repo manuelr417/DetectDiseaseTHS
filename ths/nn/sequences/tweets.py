@@ -185,14 +185,18 @@ class TweetSentiment2LSTM2Dense(TweetSentiment2LSTM):
         # Second LSTM Layer
         # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
         # Second Layer Dropout
-        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_2")(X)
+        X = LSTM(256, return_sequences=False, name="LSTM_2")(X)
         X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
-        X = Dense(relu_dense_layer, name="DENSE_1", activation='relu')(X)
+        X = Dense(128, name="DENSE_1", activation='relu')(X)
         # Send to a Dense Layer with sigmoid activation
         X = Dense(dense_layer_units, name="DENSE_2")(X)
         X = Activation("sigmoid", name="SIGMOID_1")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
 
 class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
     def __init__(self, max_sentence_len, embedding_builder):
@@ -235,6 +239,9 @@ class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
         # create the model
         self.model = Model(input=sentence_input, output=X)
 
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
 
 class TweetSentimentGRUSM(TweetSentiment2LSTM):
     def __init__(self, max_sentence_len, embedding_builder):
@@ -461,9 +468,9 @@ class TweetSentiment2DCNN:
     def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0):
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
         return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
-                       validation_split=validation_split)
+                       validation_split=validation_split, class_weight=class_weight)
 
     def evaluate(self, X_test, Y_test):
         return self.model.evaluate(X_test, Y_test)
@@ -676,10 +683,139 @@ class TweetSentiment2LSTM2DenseSMv2(TweetSentiment2LSTM):
         # X = Dense(64, name="DENSE_2", activation='relu', kernel_regularizer=l2)(X)
         # X = BatchNormalization()(X)
         # X = Dense(32, name="DENSE_3", activation='relu', kernel_regularizer=l2)(X)
-        X = BatchNormalization()(X)
+        #X = BatchNormalization()(X)
         # Send to a Dense Layer with sigmoid activation
         X = Dense(1, name="DENSE_4", kernel_regularizer=l2)(X)
-        X = BatchNormalization()(X)
+        #X = BatchNormalization()(X)
         X = Activation("sigmoid", name="sigmoid")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
+
+class  TweetSentiment2DCNNv2_1(TweetSentiment2DCNN):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_dropout=0.0, padding='same', filters=4, kernel_size=(1,1), strides=(1,1), activation='relu',
+              dense_units=64, second_dropout=0.0):
+
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+
+        # Reshape with channels
+        X = Reshape((self.max_sentence_len, self.embedding_builder.get_dimensions(), 1))(embeddings)
+
+        # First convolutional layer
+        kernel_width = self.embedding_builder.get_dimensions()
+        kernel_height = 3
+        kernel_size = (kernel_height, kernel_width)
+        X = Conv2D(filters=filters, kernel_size=kernel_size, strides=(1, 1), padding=padding, activation=activation,
+                   name="CONV2D_1")(X)
+        #MAX pooling
+        pool_height =  self.max_sentence_len - kernel_height + 1  # assumes zero padding and stride of 1
+        pool_size = (pool_height, 1)
+        X = MaxPooling2D(pool_size=pool_size, name = "MAXPOOL_1")(X)
+
+        #Flatten
+        X = Flatten()(X)
+
+        # # First dense layer
+        dense_units = 32
+        #X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_1")(X)
+        #X = Dropout(second_dropout, name="DROPOUT_1")(X)
+
+        # # Second dense layer
+        X = Dense(units=dense_units, activation='relu', name="DENSE_2")(X)
+        X = Dropout(second_dropout, name="DROPOUT_2")(X)
+        #
+        # # Third layer
+        X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_3")(X)
+        X = Dropout(second_dropout, name="DROPOUT_3")(X)
+
+        # Final layer
+        X = Dense(1, activation= "sigmoid")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+class TweetSentiment2LSTM2Dense3Layer(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+
+        # Dropout regularization
+        X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
+        # Second LSTM Layer
+        # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
+        # Second Layer Dropout
+        #X = LSTM(second_layer_units, return_sequences=True, name="LSTM_2")(X)
+        #X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_3")(X)
+        X = Dropout(third_layer_dropout, name="DROPOUT_3")(X)
+        X = Dense(128, name="DENSE_1", activation='relu')(X)
+        # Send to a Dense Layer with sigmoid activation
+        X = Dense(dense_layer_units, name="DENSE_2")(X)
+        X = Activation("sigmoid", name="SIGMOID_1")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
+
+class TweetSentiment2LSTM2Dense4Layer(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+
+        # Dropout regularization
+        X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
+        # Second LSTM Layer
+        # X  = LSTM(second_layer_units, return_sequences=False, name="LSTM_2", kernel_regularizer=l2(0.1))(X)
+        # Second Layer Dropout
+        X = LSTM(second_layer_units, return_sequences=True, name="LSTM_2")(X)
+        X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        X = LSTM(second_layer_units, return_sequences=True, name="LSTM_3")(X)
+        X = Dropout(third_layer_dropout, name="DROPOUT_3")(X)
+        X = LSTM(second_layer_units, return_sequences=False, name="LSTM_4")(X)
+        X = Dropout(third_layer_dropout, name="DROPOUT_4")(X)
+        X = Dense(64, name="DENSE_1", activation='relu')(X)
+        X = Dense(32, name="DENSE_2", activation='relu')(X)
+
+        # Send to a Dense Layer with sigmoid activation
+        X = Dense(dense_layer_units, name="Final_DENSE")(X)
+        X = Activation("sigmoid", name="SIGMOID_1")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)

@@ -6,7 +6,7 @@ from keras.optimizers import SGD, Adam, RMSprop, Nadam
 from keras.utils import to_categorical
 import matplotlib.pyplot as plt
 from keras.regularizers import l2
-from ths.nn.metrics.f1score import f1, precision, recall
+from ths.nn.metrics.f1score import f1, precision, recall, fprate
 
 import numpy as np
 import csv
@@ -138,9 +138,9 @@ class ProcessTweetsGloveOnePass:
             for r in csv_file:
                 if i !=0:
                     tweet = r[0]
-                    label = r[1]
-                    if (label == '2'):
-                        label == '0'
+                    label = int(r[1])
+                    if (label == 2):
+                        label = 0
                     X_all.append(tweet)
                     Y_all.append(label)
                 i = i + 1
@@ -183,11 +183,12 @@ class ProcessTweetsGloveOnePass:
         NN.summary()
         sgd = SGD(lr=0.01, momentum=0.9, decay=0.1, nesterov=False)
         rmsprop = RMSprop(decay=0.001)
-        NN.compile(optimizer=rmsprop, loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1])
+        NN.compile(optimizer=rmsprop, loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
-        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.4 )
+        class_weight = {1: (1-0.63), 0: 0.63}
+        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.2, class_weight = class_weight)
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")
@@ -295,11 +296,12 @@ class ProcessTweetsGloveOnePassSM:
         sgd = SGD(lr=0.001, momentum=0.09, decay=0.001, nesterov=True)
         rmsprop = RMSprop(decay=0.003)
         adam = Adam(lr=0.1, decay=0.05)
-        NN.compile(optimizer=rmsprop, loss="categorical_crossentropy", metrics=['accuracy'])
+        NN.compile(optimizer=rmsprop, loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
-        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.3 )
+        w_dict = {0: 0.31, 1: 0.63, 2 : 0.06}
+        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.2, class_weight= w_dict)
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")
@@ -656,7 +658,8 @@ class ProcessTweetsWord2VecOnePass2DCNN:
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
-        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, callbacks=[callback], validation_split=0.3 )
+        class_weight = {0: 5., 1: 10., 2: 1.}
+        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, callbacks=[callback], validation_split=0.2, class_weight=class_weight )
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")
@@ -1004,9 +1007,9 @@ class ProcessTweetsWord2VecOnePassSMv2:
         np.random.shuffle(All)
         for r in All:
             tweet = r[0]
-            label = r[1]
-            if label == '2':
-                label = '0'
+            label = int(r[1])
+            if label == 2:
+                label = 0
 
             X_all.append(tweet)
             Y_all.append(label)
@@ -1055,11 +1058,12 @@ class ProcessTweetsWord2VecOnePassSMv2:
         sgd = SGD(lr=0.01, momentum=0.009, decay=0.001, nesterov=True)
         rmsprop = RMSprop(decay=0.004)
         adam = Adam(lr=0.1, decay=0.05)
-        NN.compile(optimizer=rmsprop, loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1])
+        NN.compile(optimizer='adam', loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
-        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.4 )
+        class_weight = {1: (1 - 0.63), 0: 0.63}
+        history = NN.fit(X_train, Y_train, epochs=epochs, callbacks=[callback], validation_split=0.4, class_weight= class_weight )
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")
