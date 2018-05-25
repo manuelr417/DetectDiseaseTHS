@@ -40,14 +40,14 @@ class  TweetSentiment2DCNN2Channel:
         kernel_width = self.embedding_builder.get_dimensions()
         kernel_height = 3
         kernel_size = (kernel_height, kernel_width)
-        X = Conv2D(filters=100, kernel_size=kernel_size, strides=(1, 1), padding=padding, activation=activation,
+        X = Conv2D(filters=20, kernel_size=kernel_size, strides=(1, 1), padding=padding, activation=activation,
                    name="CONV2D_1")(concat_embeddings)
         #X  = Conv2D(filters = 66, kernel_size = (kernel_height+2, 1),  strides=(1, 1), padding='same', activation=activation,
         #           name="CONV2D_2")(X)
         #MAX pooling
         pool_height =  self.max_sentence_len - kernel_height + 1  # assumes zero padding and stride of 1
         pool_size = (pool_height, 1)
-        X = MaxPooling2D(pool_size=pool_size, name = "MAXPOOL_1")(X)
+        X = AveragePooling2D(pool_size=pool_size, name = "MAXPOOL_1")(X)
 
         #Flatten
         X = Flatten()(X)
@@ -58,12 +58,12 @@ class  TweetSentiment2DCNN2Channel:
         X = Dropout(second_dropout, name="DROPOUT_1")(X)
 
         # # Second dense layer
-        #X = Dense(units=dense_units, activation='relu', name="DENSE_2")(X)
-        #X = Dropout(second_dropout, name="DROPOUT_2")(X)
+        X = Dense(units=dense_units, activation='relu', name="DENSE_2")(X)
+        X = Dropout(second_dropout, name="DROPOUT_2")(X)
         #
         # # Third layer
-        #X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_3")(X)
-        #X = Dropout(second_dropout, name="DROPOUT_3")(X)
+        X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_3")(X)
+        X = Dropout(second_dropout, name="DROPOUT_3")(X)
 
         # Final layer
         X = Dense(1, activation= "sigmoid", name="FINAL_SIGMOID")(X)
