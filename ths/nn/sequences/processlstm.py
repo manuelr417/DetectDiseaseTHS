@@ -52,7 +52,7 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
                 if i !=0:
                     label = int(r[1])
                     if (label == 1) or (label == 2):
-                        if ones_count <= 4611:
+                        if ones_count <= 10000:
                             All.append(r)
                             ones_count += 1
                     else :
