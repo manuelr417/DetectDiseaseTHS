@@ -1028,7 +1028,7 @@ class ProcessTweetsWord2VecOnePass2DCNN2Channelv5:
         callback = TensorBoard(log_dir="/tmp/logs")
         #class_weight = {0: 0.67, 1: 0.33}
         class_weight = None
-        history = NN.fit([X_train, X_train_reverse], Y_train, epochs=epochs, batch_size=32, callbacks=[callback], validation_split=0.40, class_weight=class_weight)
+        history = NN.fit([X_train, X_train_reverse], Y_train, epochs=epochs, batch_size=32, callbacks=[callback], validation_split=0.20, class_weight=class_weight)
         print("Model trained")
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")

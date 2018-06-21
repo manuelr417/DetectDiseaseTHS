@@ -747,6 +747,8 @@ class  TweetSentiment2DCNNv2_1(TweetSentiment2DCNN):
 class TweetSentiment2LSTM2Dense3Layer(TweetSentiment2LSTM):
     def __init__(self, max_sentence_len, embedding_builder):
         super().__init__(max_sentence_len, embedding_builder)
+    def get_model(self):
+        return self.model
 
     def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
               second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
@@ -776,9 +778,9 @@ class TweetSentiment2LSTM2Dense3Layer(TweetSentiment2LSTM):
         # create the model
         self.model = Model(input=sentence_input, output=X)
 
-    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None, verbose=1):
         return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
-                       validation_split=validation_split, class_weight=class_weight)
+                       validation_split=validation_split, class_weight=class_weight, verbose=verbose)
 
 class TweetSentiment2LSTM2Dense4Layer(TweetSentiment2LSTM):
     def __init__(self, max_sentence_len, embedding_builder):

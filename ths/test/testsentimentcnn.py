@@ -9,7 +9,7 @@ def main():
 
     #Bueno el model12cnnv2, ccn4, cnn5
     # inception 5 es bueno
-    P.process("trained/modelinception6.json", "trained/modelinception6.h5", plot=True, epochs=20)
+    P.process("trained/modelinception7.json", "trained/modelinception7.h5", plot=True, epochs=25)
 #joderme
 if __name__ == "__main__":
     main()

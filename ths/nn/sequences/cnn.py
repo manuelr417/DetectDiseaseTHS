@@ -313,7 +313,8 @@ class TweetSentimentInception(TweetSentiment2DCNN2Channel):
         X = Flatten()(final_onebyone)
         X = Dropout(0.10, name="DROPOUT_1")(X)
 
-        X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_1")(X)
+        X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(X)
+        X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
 
         # Final layer
         X = Dense(1, activation="sigmoid", name="FINAL_SIGMOID")(X)

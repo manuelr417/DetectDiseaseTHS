@@ -52,15 +52,15 @@ class ProcessTweetsGlove:
         X_train_pad = P.pad_list(X_train_indices)
         print("Train data padded")
         # Trim
-        trim_size = 40
-        Trim = TrimSentences(trim_size)
-        X_train_pad = Trim.trim_list(X_train_pad)
+        #trim_size = 40
+        #Trim = TrimSentences(trim_size)
+        #X_train_pad = Trim.trim_list(X_train_pad)
         #convert to numPY arrays
         X_train = np.array(X_train_pad)
         Y_train = np.array(Y_train)
         print("Train data convert to numpy arrays")
-        #NN = TweetSentiment2LSTM2Dense(max_len, G)
-        NN = TweetSentiment2LSTM2Dense(trim_size, G)
+        NN = TweetSentiment2LSTM2Dense(max_len, G)
+        #NN = TweetSentiment2LSTM2Dense(trim_size, G)
 
         print("model created")
         NN.build(first_layer_units = 128, dense_layer_units=1, first_layer_dropout=0, second_layer_dropout=0)
@@ -74,7 +74,7 @@ class ProcessTweetsGlove:
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
-        NN.fit(X_train, Y_train, epochs=80, callbacks=[callback])
+        NN.fit(X_train, Y_train, epochs=5, callbacks=[callback])
         print("Model trained")
         X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         print("Test data mapped")
@@ -94,7 +94,7 @@ class ProcessTweetsGlove:
             i = i + 1
         print(X_Predict)
         X_Predict_Final = P.pad_list(X_Predict_Idx)
-        X_Predict_Final = Trim.trim_list(X_Predict_Final)
+        #X_Predict_Final = Trim.trim_list(X_Predict_Final)
         #X_Predict = [X_Predict]
         X_Predict_Final = np.array(X_Predict_Final)
         print("Predict: ", NN.predict(X_Predict_Final))
