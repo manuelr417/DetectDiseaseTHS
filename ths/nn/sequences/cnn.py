@@ -315,6 +315,7 @@ class TweetSentimentInception(TweetSentiment2DCNN2Channel):
 
         X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(X)
         X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
+        X = Dense(units=int(dense_units / 4), activation='relu', name="DENSE_3")(X)
 
         # Final layer
         X = Dense(1, activation="sigmoid", name="FINAL_SIGMOID")(X)
