@@ -1,4 +1,4 @@
-from ths.nn.sequences.tweets import TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer
+from ths.nn.sequences.tweets import TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
 from ths.utils.files import GloveEmbedding, Word2VecEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences, TrimSentences
 from keras.callbacks import TensorBoard
@@ -120,8 +120,9 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         print("Train data convert to numpy arrays")
         #NN = TweetSentiment2DCNN(trim_size, G)
         #NN = TweetSentiment2LSTM2Dense(trim_size, G)
-        NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
+        #NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense4Layer(trim_size, G)
+        NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
 

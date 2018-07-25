@@ -8,8 +8,9 @@ def main():
     P = ProcessTweetsWord2VecOnePass2DCNN2Channelv5("data/cleantextlabels5.csv", "data/glove.6B.50d.txt")
 
     #Bueno el model12cnnv2, ccn4, cnn5
-    # inception 5 es bueno, 7 es bueno
-    P.process("trained/modelinception8.json", "trained/modelinception8.h5", plot=True, epochs=25)
+    # inception 5 es bueno, 7 es bueno, 8 bueno, 9 es bueno modelinception9
+    # inception con attention
+    P.process("trained/modelinceptionatt1.json", "trained/modelinceptionatt1.h5", plot=True, epochs=30)
 #joderme
 if __name__ == "__main__":
     main()

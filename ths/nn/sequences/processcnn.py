@@ -1007,8 +1007,8 @@ class ProcessTweetsWord2VecOnePass2DCNN2Channelv5:
         #Y_train = to_categorical(Y_train, num_classes=3)
         print("Train data convert to numpy arrays")
         #NN = TweetSentiment2DCNN(trim_size, G)
-        #NN = TweetSentiment2DCNN2Channel(trim_size, G)
-        NN = TweetSentimentInception(trim_size, G)
+        NN = TweetSentiment2DCNN2Channel(trim_size, G)
+        #NN = TweetSentimentInception(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
 

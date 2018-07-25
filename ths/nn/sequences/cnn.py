@@ -6,7 +6,7 @@ from ths.utils.sentences import SentenceToEmbedding
 from keras.models import Model
 from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, \
     Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D, AveragePooling2D, \
-    Concatenate, ZeroPadding2D
+    Concatenate, ZeroPadding2D, Multiply, Permute
 
 from keras.layers.embeddings import Embedding
 
@@ -53,6 +53,12 @@ class  TweetSentiment2DCNN2Channel:
 
         #Flatten
         X = Flatten()(X)
+
+        # Attention
+        #att_dense = 70*20*1
+        #attention_probs = Dense(att_dense, activation='softmax', name='attention_probs')(X)
+        #attention_mul = Multiply(name='attention_multiply')([X, attention_probs])
+
 
         # # First dense layer
         dense_units = 128
@@ -307,13 +313,18 @@ class TweetSentimentInception(TweetSentiment2DCNN2Channel):
                    name="CONV_1X1_final")(concat_layer)
 
         #final_onebyone = MaxPooling2D((2,1))(final_onebyone)
-        final_onebyone = AveragePooling2D((2,1))(final_onebyone)
+        #final_onebyone = AveragePooling2D((2,1))(final_onebyone)
 
         # Flatten
         X = Flatten()(final_onebyone)
-        X = Dropout(0.10, name="DROPOUT_1")(X)
+        #X = Dropout(0.10, name="DROPOUT_1")(X)
 
-        X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(X)
+        # attention
+        att_dense = 70
+        attention_probs = Dense(att_dense, activation='softmax', name='attention_probs')(X)
+        attention_mul = Multiply(name='attention_multiply')([X, attention_probs])
+
+        X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(attention_mul)
         X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
         X = Dense(units=int(dense_units / 4), activation='relu', name="DENSE_3")(X)
 

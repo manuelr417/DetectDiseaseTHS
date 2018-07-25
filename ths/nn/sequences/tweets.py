@@ -3,7 +3,7 @@ np.random.seed(7)
 from ths.utils.sentences import SentenceToEmbedding
 
 from keras.models import Model
-from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D
+from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D, Permute, Multiply, TimeDistributed
 from keras.layers.embeddings import Embedding
 from keras.regularizers import l2
 
@@ -816,6 +816,81 @@ class TweetSentiment2LSTM2Dense4Layer(TweetSentiment2LSTM):
         X = Dense(dense_layer_units, name="Final_DENSE")(X)
         X = Activation("sigmoid", name="SIGMOID_1")(X)
         # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
+
+class TweetSentiment2LSTM2Attention(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+
+        #Attention Layer
+        attention = Permute((2, 1), name="Attention_Permute")(X)
+        attention = Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense")(attention)
+        attention_probs = Permute((2, 1), name='attention_probs')(attention)
+        output_attention_mul = Multiply(name='attention_multiplu')([X, attention_probs])
+
+        # Final Dense Layer
+        final_layer = Flatten()(output_attention_mul)
+        final_layer = Dense(1, activation="sigmoid", name="Final_SIGMOID")(final_layer)
+
+        self.model = Model(input=sentence_input, output=final_layer)
+
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                       validation_split=validation_split, class_weight=class_weight)
+
+
+class TweetSentiment2LSTM2Attentionv2(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        #X = Bidirectional(LSTM(first_layer_units, return_sequences=True, name='LSTM_1'))(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+
+        X = Dropout(0.10, name="DROPOUT_1")(X)
+
+        #X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1a')(X)
+        #X = Dropout(0.10, name="DROPOUT_1a")(X)
+        #Attention Layer
+        attention = Permute((2, 1), name="Attention_Permute")(X)
+        #attention = Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense")(attention)
+        attention = TimeDistributed(Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense"))(attention)
+        attention_probs = Permute((2, 1), name='attention_probs')(attention)
+        output_attention_mul = Multiply(name='attention_multiplu')([X, attention_probs])
+
+        # second LSTM Layer
+        X = LSTM(second_layer_units, return_sequences=False, name = 'LSTM_2')(output_attention_mul)
+        X = Dropout(0.10, name="DROPOUT_2")(X)
+        # Send to a Dense Layer with sigmoid activation
+        X = Dense(dense_layer_units, name="DENSE_2")(X)
+        X = Activation("sigmoid", name="SIGMOID_1")(X)
+
+        # Model
         self.model = Model(input=sentence_input, output=X)
 
     def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
