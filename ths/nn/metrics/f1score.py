@@ -141,3 +141,8 @@ def fprate(y_true, y_pred):
 #     possible_negatives = K.sum(K.round(K.clip(y_false, 0, 1)))
 #     fprate = false_positive / (possible_negatives  + K.epsilon())
 #     return fprate
+
+def accuracy(y_true, y_pred):
+    n_samples = len(y_pred)
+    correct = 1 * (y_true == y_pred)
+    return sum(correct) / n_samples

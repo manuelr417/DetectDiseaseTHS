@@ -2,9 +2,10 @@ from ths.utils.files import GloveEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences
 
 def main():
-    G = GloveEmbedding("glove.6B.50d.txt")
+    G = GloveEmbedding("../test/data/glove.6B.50d.txt")
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     #print("locon: ", word_to_idx["locon"])
+    print("Length dictionary: ", len(word_to_idx))
     s = "I love New York and music locon"
     s = s.lower()
     print("Sentence: ", s)
