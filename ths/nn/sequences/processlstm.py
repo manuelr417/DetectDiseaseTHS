@@ -36,7 +36,7 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         plt.legend(['train', 'test'], loc='upper left')
         plt.show()
 
-    def process(self, json_filename, h5_filename, plot=False, epochs = 100, vect_dimensions = 100):
+    def process(self, json_filename, h5_filename, plot=False, epochs = 100, vect_dimensions = 50):
         np.random.seed(11)
         # open the file with tweets
         X_all = []
@@ -138,7 +138,7 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         rmsprop = RMSprop(decay=0.003)
         adam = Adam(lr=0.1, decay=0.05)
         sgd = SGD(lr=0.05)
-        NN.compile(optimizer='rmsprop', loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
+        NN.compile(optimizer='adam', loss="binary_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")

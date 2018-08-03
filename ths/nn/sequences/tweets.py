@@ -888,7 +888,7 @@ class TweetSentiment2LSTM2Attentionv2(TweetSentiment2LSTM):
         X = Dropout(0.10, name="DROPOUT_2")(X)
         # Send to a Dense Layer with sigmoid activation
         X = Dense(dense_layer_units, name="DENSE_2")(X)
-        X = Activation("sigmoid", name="SIGMOID_1")(X)
+        X = Activation("softmax", name="SOFTMAX_1")(X)
 
         # Model
         self.model = Model(input=sentence_input, output=X)

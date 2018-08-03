@@ -4,7 +4,7 @@ from ths.utils.datasets import TweetDataSetGenerator
 import csv
 
 def main():
-    T  = TweetDataSetGenerator("data/cleantextlabels3.csv")
+    T  = TweetDataSetGenerator("data/cleantextlabels5.csv")
     data, count, dictionary, reverse_dictionary = T.get_dataset()
     S = SkipGrams(text_data=data, dictionary_size=10000)
     targets, contexts, labels = S.build()
@@ -13,7 +13,7 @@ def main():
     print("labels: ", labels[:10])
 
     print("Create Word2Vect")
-    W2V = Word2VecNegSam(len(dictionary), 100)
+    W2V = Word2VecNegSam(len(dictionary), 50)
     print("Build Word2Vect")
     W2V.build()
     print("Summary")
@@ -25,7 +25,7 @@ def main():
     print("Build callback")
     C = Word2VecValidationCallback(reverse_dictionary=reverse_dictionary, validation_model = validation_model,
                                    valid_size=8, valid_window=100, top_k=8)
-    epochs = 1000000
+    epochs = 200000
     print("train W2V for %s epochs " % epochs)
     embedding= W2V.train(targets, contexts, labels, epochs=epochs, callback=C)
     print("embedding len: ", len(embedding))
@@ -43,7 +43,7 @@ def main():
     v2 = embedding[0][j]
     print("v1-v2", v1 - v2)
 
-    with open("trained/embedding3.csv", "w") as f:
+    with open("trained/embedding3-50d.csv", "w") as f:
         out_f = csv.writer(f, delimiter=' ')
         for word, idx in dictionary.items():
             e = embedding[0][idx]
