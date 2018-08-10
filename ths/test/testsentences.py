@@ -28,5 +28,8 @@ def main():
     for s in mapped:
         print(s)
 
+    print("Embedding 0: ", embedding[0])
+    print("Embedding 400001: ", embedding[400001])
+
 if __name__ == "__main__":
     main()

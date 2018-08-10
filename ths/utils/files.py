@@ -47,7 +47,8 @@ class GloveEmbedding:
                     i = i+ 1
                     word_to_vect.append(self.parse_embedding(vector_parts))
             #add <unk> token
-            unk = np.random.rand(self.dimensions,)
+            #unk = np.random.rand(self.dimensions,)
+            unk = np.ones((self.dimensions,))
             idx_to_word[i] = "<unk>"
             word_to_idx["<unk>"] = i
             word_to_vect.append(unk)
@@ -79,7 +80,8 @@ class GloveEmbedding:
                     i = i+ 1
                     word_to_vect.append(self.parse_embedding(vector_parts))
             #add <unk> token
-            unk = np.random.rand(self.dimensions,)
+            #unk = np.random.rand(self.dimensions,)
+            unk = np.ones((self.dimensions,))
             idx_to_word[i] = "<unk>"
             word_to_idx["<unk>"] = i
             word_to_vect.append(unk)

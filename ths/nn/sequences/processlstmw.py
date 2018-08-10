@@ -1,4 +1,5 @@
-from ths.nn.sequences.tweets import TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
+from ths.nn.sequences.tweets import TweetSentimentSeq2SeqGRU, TweetSentimentSeq2Seq, TweetSentimentGRUSM, TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
+from ths.nn.sequences.cnn import TweetSentimentInception
 from ths.utils.files import GloveEmbedding, Word2VecEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences, TrimSentences
 from keras.callbacks import TensorBoard
@@ -9,10 +10,11 @@ from keras.regularizers import l2
 from ths.nn.metrics.f1score import f1, precision, recall, fprate
 from sklearn.utils import class_weight
 from sklearn.metrics import confusion_matrix
-
+from ths.utils.errors import ErrorAnalysis
 import numpy as np
 import csv
 import math
+from ths.nn.metrics.f1score import calculate_cm_metrics
 
 class ProcessTweetsWord2VecOnePassLSTMv2_1:
     def __init__(self, labeled_tweets_filename, embedding_filename):
@@ -44,7 +46,8 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         Y_all = []
         All  = []
 
-        with open(self.labeled_tweets_filename, "r", encoding="ISO-8859-1") as f:
+        #with open(self.labeled_tweets_filename, "r", encoding="ISO-8859-1") as f:
+        with open(self.labeled_tweets_filename, "r") as f:
             i = 0
             csv_file = csv.reader(f, delimiter=',')
             ones_count = 0
@@ -89,7 +92,7 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         print("Data Ingested")
         # divide the data into training and test
         num_data = len(X_all)
-        limit = math.ceil(num_data * 0.60)
+        limit = math.ceil(num_data * 0.80)
         X_train_sentences = X_all
         Y_train = Y_all
         # divide the data into X_train, Y_train, X_test, Y_test
@@ -113,7 +116,9 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         X_train_pad = P.pad_list(X_train_indices)
         print("Train data padded")
         # TRIM
-        trim_size = max_len
+        #trim_size = max_len
+        trim_size = 33
+
         Trim = TrimSentences(trim_size)
         X_train_pad = Trim.trim_list(X_train_pad)
         print("X[0], ", X_train_pad[0])
@@ -147,7 +152,7 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         rmsprop = RMSprop(decay=0.003)
         adam = Adam(lr=0.1, decay=0.05)
         sgd = SGD(lr=0.05)
-        NN.compile(optimizer='adam', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
+        NN.compile(optimizer='rmsprop', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
@@ -260,7 +265,7 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         print("Data Ingested")
         # divide the data into training and test
         num_data = len(X_all)
-        limit = math.ceil(num_data * 0.60)
+        limit = math.ceil(num_data * 0.80)
         X_train_sentences = X_all
         Y_train = Y_all
         # Divide after conversions
@@ -302,6 +307,7 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         Y_train = to_categorical(Y_train, num_classes=3)
 
         # Divide the data
+        X_test_text = X_all[limit:]
         X_test = X_train[limit:]
         Y_test = Y_train[limit:]
         X_train = X_train[0: limit]
@@ -315,13 +321,17 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         #NN = TweetSentiment2LSTM2Dense(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense4Layer(trim_size, G)
-        NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
+        #NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
+
         #print("Build GRU")
-        #NN = TweetSentimentGRUSM(max_len, G)
+        #NN = TweetSentimentGRUSM(trim_size, G)
+
+        NN = TweetSentimentSeq2Seq(trim_size, G)
 
         print("model created")
         kernel_regularizer = l2(0.001)
         #kernel_regularizer = None
+
         NN.build(first_layer_units = max_len, second_layer_units = max_len, relu_dense_layer=16, dense_layer_units = 3,
                  first_layer_dropout=0, second_layer_dropout=0, third_layer_dropout=0)
         print("model built")
@@ -330,7 +340,7 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         rmsprop = RMSprop(decay=0.003)
         adam = Adam(lr=0.1, decay=0.05)
         sgd = SGD(lr=0.05)
-        NN.compile(optimizer='adam', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
+        NN.compile(optimizer='rmsprop', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         callback = TensorBoard(log_dir="/tmp/logs")
@@ -351,6 +361,13 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         print("Y test: ", Y_test)
         c_matrix = confusion_matrix(Y_test, preds)
         print("matrix: ", c_matrix)
+        print("Storing Errors: ")
+        ErrorAnalysis.store_errors(X_test_text, Y_test, preds, "errorgru12.csv")
+        print("Errors stored")
+        print("Confusion matrix: ")
+        prec_1, recall_1, f1_1, spec_1, t = calculate_cm_metrics(c_matrix, '')
+        print("C1-> presicion, recall, F1: ", prec_1, recall_1, f1_1)
+
         #
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")

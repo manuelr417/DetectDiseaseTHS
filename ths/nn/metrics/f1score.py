@@ -146,3 +146,40 @@ def accuracy(y_true, y_pred):
     n_samples = len(y_pred)
     correct = 1 * (y_true == y_pred)
     return sum(correct) / n_samples
+
+
+def calculate_cm_metrics(c_matrix, track):
+    prec_0 = c_matrix[0][0] / (c_matrix[0][0] + c_matrix[1][0] + c_matrix[2][0])
+    prec_1 = c_matrix[1][1] / (c_matrix[1][1] + c_matrix[0][1] + c_matrix[2][1])
+    prec_2 = c_matrix[2][2] / (c_matrix[2][2] + c_matrix[1][2] + c_matrix[0][2])
+
+    recall_0 = c_matrix[0][0] / (c_matrix[0][0] + c_matrix[0][1] + c_matrix[0][2])
+    recall_1 = c_matrix[1][1] / (c_matrix[1][1] + c_matrix[1][0] + c_matrix[1][2])
+    recall_2 = c_matrix[2][2] / (c_matrix[2][2] + c_matrix[2][0] + c_matrix[2][1])
+
+    f1_0 = 2 * ((prec_0 * recall_0) / (prec_0 + recall_0))
+    f1_1 = 2 * ((prec_1 * recall_1) / (prec_1 + recall_1))
+    f1_2 = 2 * ((prec_2 * recall_2) / (prec_2 + recall_2))
+
+    tn_0 = c_matrix[1][1] + c_matrix[1][2] + c_matrix[2][1] + c_matrix[2][2]
+    tn_1 = c_matrix[0][0] + c_matrix[0][2] + c_matrix[2][0] + c_matrix[2][2]
+    tn_2 = c_matrix[0][0] + c_matrix[0][1] + c_matrix[1][0] + c_matrix[1][1]
+
+    spec_0 = tn_0 / (tn_0 + c_matrix[1][0] + c_matrix[2][0])
+    spec_1 = tn_1 / (tn_1 + c_matrix[0][1] + c_matrix[2][1])
+    spec_2 = tn_2 / (tn_2 + c_matrix[0][2] + c_matrix[1][2])
+
+    t = track + ("Precision 0: {}\n" 
+                "Precision 1: {}\n"
+                "Precision 2: {}\n"
+                "Recall 0: {}\n"
+                "Recall 1: {}\n"
+                "Recall 2: {}\n"
+                "F1 Score 0: {}\n"
+                "F1 Score 1: {}\n"
+                "F1 Score 2: {}\n"
+                "Specificity 0: {}\n"
+                "Specificity 1: {}\n"
+                "Specificity 2: {}\n").format(prec_0, prec_1, prec_2, recall_0, recall_1, recall_2, f1_0, f1_1,
+                                                f1_2, spec_0, spec_1, spec_2)
+    return prec_1, recall_1, f1_1, spec_1, t
