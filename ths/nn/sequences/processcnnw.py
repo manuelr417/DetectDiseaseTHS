@@ -13,6 +13,7 @@ from ths.nn.metrics.f1score import f1, precision, recall, fprate
 from sklearn.utils import class_weight
 from sklearn.metrics import confusion_matrix
 from ths.utils.errors import ErrorAnalysis
+from ths.nn.metrics.f1score import calculate_cm_metrics
 
 import numpy as np
 import csv
@@ -152,8 +153,8 @@ class ProcessTweetsCNN:
         #NN = TweetSentiment2LSTM2Dense(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense4Layer(trim_size, G)
-        #NN = TweetSentimentInceptionOneChan(trim_size, G)
-        NN = TweetSentimentCNN(trim_size, G)
+        NN = TweetSentimentInceptionOneChan(trim_size, G)
+        #NN = TweetSentimentCNN(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
 
@@ -194,6 +195,10 @@ class ProcessTweetsCNN:
         print("Storing Errors: ")
         ErrorAnalysis.store_errors(X_test_text, Y_test, preds, "errorcnn.csv")
         print("Errors stored")
+        print("Confusion matrix: ")
+        prec_1, recall_1, f1_1, spec_1, t = calculate_cm_metrics(c_matrix, '')
+        print("C1-> presicion, recall, F1: ", prec_1, recall_1, f1_1)
+
         #
         # X_test_indices, max_len = S.map_sentence_list(X_test_sentences)
         # print("Test data mapped")

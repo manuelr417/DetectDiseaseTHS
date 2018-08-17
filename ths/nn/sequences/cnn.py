@@ -395,8 +395,8 @@ class TweetSentimentInceptionOneChan(TweetSentiment2DCNN2Channel):
         fivebydim2 = ZeroPadding2D((1,0))(fivebydim2)
 
         concat_layer = Concatenate(axis = -1)([threebydim1, threebydim2,fivebydim1, fivebydim2])
-
-        final_onebyone = Conv2D(filters=1, kernel_size=(1,1), strides=(1, 1), padding=padding, activation=activation,
+        #final_onebyone = AveragePooling2D((2,1))(concat_layer)
+        final_onebyone = Conv2D(filters=filters*2, kernel_size=(1,1), strides=(1, 1), padding=padding, activation=activation,
                    name="CONV_1X1_final")(concat_layer)
 
         #final_onebyone = MaxPooling2D((2,1))(final_onebyone)
@@ -404,16 +404,22 @@ class TweetSentimentInceptionOneChan(TweetSentiment2DCNN2Channel):
 
         # Flatten
         X = Flatten()(final_onebyone)
+        #X = Flatten()(concat_layer)
+
         #X = Dropout(0.10, name="DROPOUT_1")(X)
 
         # attention
-        att_dense = 70
-        attention_probs = Dense(att_dense, activation='softmax', name='attention_probs')(X)
-        attention_mul = Multiply(name='attention_multiply')([X, attention_probs])
+        # att_dense = 70
+        # attention_probs = Dense(att_dense, activation='softmax', name='attention_probs')(X)
+        # attention_mul = Multiply(name='attention_multiply')([X, attention_probs])
+        #
+        # X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(attention_mul)
+        #X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
+        #X = Dense(units=int(dense_units / 4), activation='relu', name="DENSE_3")(X)
 
-        X = Dense(units=int(dense_units / 1), activation='relu', name="DENSE_1")(attention_mul)
-        X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
-        X = Dense(units=int(dense_units / 4), activation='relu', name="DENSE_3")(X)
+        X = Dense(units=128, activation='relu', name="DENSE_2")(X)
+        X = Dense(units=64, activation='relu', name="DENSE_3")(X)
+        X = Dense(units=32, activation='relu', name="DENSE_4")(X)
 
         # Final layer
         #X = Dense(1, activation="sigmoid", name="FINAL_SIGMOID")(X)

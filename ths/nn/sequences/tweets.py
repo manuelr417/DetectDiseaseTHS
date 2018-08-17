@@ -880,26 +880,40 @@ class TweetSentiment2LSTM2Attentionv2(TweetSentiment2LSTM):
         # Embedding layer
         embeddings_layer = self.pretrained_embedding_layer()
         embeddings = embeddings_layer(sentence_input)
+
+        X = Reshape((self.max_sentence_len, self.embedding_builder.get_dimensions(), 1))(embeddings)
+        filters = 11
+        kernel_size = 5
+        padding = 'valid'
+        activation = 'relu'
+        # 1D Convolutional Neural Network
+        X = Conv1D(filters=filters, kernel_size=kernel_size, padding=padding, activation=activation,
+                   name="CONV1D_1")(embeddings)
         # First LSTM Layer
         # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
         #X = Bidirectional(LSTM(first_layer_units, return_sequences=True, name='LSTM_1'))(embeddings)
-        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+        #X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(embeddings)
+        X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1')(X)
 
-        X = Dropout(0.10, name="DROPOUT_1")(X)
+        X = Dropout(0, name="DROPOUT_1")(X)
 
         #X = LSTM(first_layer_units, return_sequences=True, name='LSTM_1a')(X)
         #X = Dropout(0.10, name="DROPOUT_1a")(X)
         #Attention Layer
         attention = Permute((2, 1), name="Attention_Permute")(X)
         #attention = Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense")(attention)
-        attention = TimeDistributed(Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense"))(attention)
+        #attention = TimeDistributed(Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense"))(attention)
+        attention = TimeDistributed(Dense(68, activation='softmax', name="Attention_Dense"))(attention)
+
         attention_probs = Permute((2, 1), name='attention_probs')(attention)
         output_attention_mul = Multiply(name='attention_multiplu')([X, attention_probs])
 
         # second LSTM Layer
         X = LSTM(second_layer_units, return_sequences=False, name = 'LSTM_2')(output_attention_mul)
-        X = Dropout(0.10, name="DROPOUT_2")(X)
+        X = Dropout(0, name="DROPOUT_2")(X)
         # Send to a Dense Layer with sigmoid activation
+        X = Dense(32, name="DENSE_1")(X)
+
         X = Dense(dense_layer_units, name="DENSE_2")(X)
         X = Activation("softmax", name="SOFTMAX_1")(X)
 
@@ -945,10 +959,11 @@ class TweetSentimentSeq2Seq(TweetSentiment2LSTM):
         #X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
         # X = Dense(128, name="DENSE_1", activation='relu')(X)
         # Send to a Dense Layer with sigmoid activation
-        #X = TimeDistributed(Dense(dense_layer_units, activation='relu', name="DENSE_2"))(X)
+        X = TimeDistributed(Dense(dense_layer_units, activation='relu', name="DENSE_1"))(X)
         X = Flatten()(X)
-        X = Dense(128, activation='relu', name="DENSE_1")(X)
-        #X = Dense(64, activation='relu', name="DENSE_2")(X)
+        #X = Dense(256, activation='relu', name="DENSE_1")(X)
+        X = Dense(128, activation='relu', name="DENSE_2")(X)
+        X = Dense(64, activation='relu', name="DENSE_3")(X)
 
         # X = Activation("sigmoid", name="SIGMOID_1")(X)
         X = Dense(3, name="FINAL_DENSE")(X)
@@ -1011,3 +1026,59 @@ class TweetSentimentSeq2SeqGRU(TweetSentiment2LSTM):
         return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
                               validation_split=validation_split, class_weight=class_weight, verbose=2)
 
+
+class TweetSentimentSeq2SeqAttention(TweetSentiment2LSTM):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_layer_units = 128, first_layer_dropout=0.5, second_layer_units = 128,
+              second_layer_dropout = 0.5, third_layer_units = 128, third_layer_dropout = 0.5,
+              relu_dense_layer = 64, dense_layer_units = 2):
+        # Input Layer
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT")
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings = embeddings_layer(sentence_input)
+
+        # Attention
+        attention = Permute((2, 1), name="Attention_Permute")(embeddings)
+        attention = Dense(self.max_sentence_len, activation='softmax', name="Attention_Dense")(attention)
+        attention_probs = Permute((2, 1), name='attention_probs')(attention)
+        output_attention_mul = Multiply(name='attention_multiplu')([embeddings, attention_probs])
+
+        # First LSTM Layer
+        # X  = LSTM(first_layer_units, return_sequences=True, name='LSTM_1', kernel_regularizer=l2(0.1))(embeddings)
+        #X = LSTM(first_layer_units, return_sequences=False, name='LSTM_1')(embeddings)
+        X = LSTM(128, return_sequences=False, name='LSTM_1')(output_attention_mul)
+
+        # Dropout regularization
+        X = Dropout(first_layer_dropout, name="DROPOUT_1")(X)
+
+        # Reshape to make it 3D
+        #X = Reshape((self.max_sentence_len, 1))(X)
+        X = Reshape((128, 1))(X)
+
+        # Second LSTM Layer
+        #X  = LSTM(second_layer_units, return_sequences=True, name="LSTM_2")(X)
+        X  = LSTM(128, return_sequences=True, name="LSTM_2")(X)
+
+        # Second Layer Dropout
+        #X = LSTM(256, return_sequences=False, name="LSTM_2")(X)
+        #X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
+        # X = Dense(128, name="DENSE_1", activation='relu')(X)
+        # Send to a Dense Layer with sigmoid activation
+        #X = TimeDistributed(Dense(dense_layer_units, activation='relu', name="DENSE_2"))(X)
+        X = Flatten()(X)
+        X = Dense(128, activation='elu', name="DENSE_1")(X)
+        X = Dense(64, activation='elu', name="DENSE_2")(X)
+
+        # X = Activation("sigmoid", name="SIGMOID_1")(X)
+        X = Dense(3, name="FINAL_DENSE")(X)
+        X = Activation("softmax", name="SOFTMAX_1")(X)
+        # create the model
+        self.model = Model(input=sentence_input, output=X)
+
+    def fit(self, X, Y, epochs=50, batch_size=32, shuffle=True, callbacks=None, validation_split=0.0,
+            class_weight=None):
+        return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
+                              validation_split=validation_split, class_weight=class_weight, verbose=2)

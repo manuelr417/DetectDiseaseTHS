@@ -1,4 +1,4 @@
-from ths.nn.sequences.tweets import TweetSentimentSeq2SeqGRU, TweetSentimentSeq2Seq, TweetSentimentGRUSM, TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
+from ths.nn.sequences.tweets import TweetSentimentSeq2SeqAttention, TweetSentimentSeq2SeqGRU, TweetSentimentSeq2Seq, TweetSentimentGRUSM, TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
 from ths.nn.sequences.cnn import TweetSentimentInception
 from ths.utils.files import GloveEmbedding, Word2VecEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbedding, PadSentences, TrimSentences
@@ -265,7 +265,7 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         print("Data Ingested")
         # divide the data into training and test
         num_data = len(X_all)
-        limit = math.ceil(num_data * 0.80)
+        limit = math.ceil(num_data * 0.70)
         X_train_sentences = X_all
         Y_train = Y_all
         # Divide after conversions
@@ -321,12 +321,13 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         #NN = TweetSentiment2LSTM2Dense(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense4Layer(trim_size, G)
-        #NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
+        NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
 
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(trim_size, G)
 
-        NN = TweetSentimentSeq2Seq(trim_size, G)
+        #NN = TweetSentimentSeq2Seq(trim_size, G)
+        #NN = TweetSentimentSeq2SeqAttention(trim_size, G)
 
         print("model created")
         kernel_regularizer = l2(0.001)
@@ -362,7 +363,7 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         c_matrix = confusion_matrix(Y_test, preds)
         print("matrix: ", c_matrix)
         print("Storing Errors: ")
-        ErrorAnalysis.store_errors(X_test_text, Y_test, preds, "errorgru12.csv")
+        ErrorAnalysis.store_errors(X_test_text, Y_test, preds, "errorlstatt13.csv")
         print("Errors stored")
         print("Confusion matrix: ")
         prec_1, recall_1, f1_1, spec_1, t = calculate_cm_metrics(c_matrix, '')

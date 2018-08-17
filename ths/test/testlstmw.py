@@ -12,7 +12,9 @@ def main():
     # also good modellstmatt3
     # el 4 con dropout
     # 11 is good
-    P.process("trained/modellstmatt12.json", "trained/modellstmatt12g.h5", plot=False, epochs=80)
+    # 12 is good
+    # 13 comes with attentions
+    P.process("trained/modellstmatt15.json", "trained/modellstmatt15.h5", plot=False, epochs=140)
 #joderme
 if __name__ == "__main__":
     main()
