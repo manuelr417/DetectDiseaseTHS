@@ -15,6 +15,7 @@ def main():
     # 12 is good
     # 13 comes with attentions
     P.process("trained/modellstmatt15.json", "trained/modellstmatt15.h5", plot=False, epochs=140)
+    # joder
 #joderme
 if __name__ == "__main__":
     main()
