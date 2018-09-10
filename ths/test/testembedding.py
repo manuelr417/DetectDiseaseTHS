@@ -1,7 +1,7 @@
 from ths.utils.files import GloveEmbedding
 
 def main():
-    G = GloveEmbedding("glove.6B.50d.txt")
+    G = GloveEmbedding("data/glove.6B.50d.txt")
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     print("embedding shape: ", embedding.shape)
     print("idx hello: ", word_to_idx["hello"])
