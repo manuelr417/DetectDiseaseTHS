@@ -7,7 +7,9 @@ def main():
     M1 = np.vstack((M1, np.array([4, 5, 6])))
     sim = matrix_cosine_similary(M1, M1)
     print("M1: \n", M1)
+    print("M1.T: \n", M1.T)
     print("self similary: \n", sim)
+    print("sim value: \n", distance_similarity_matrix(sim))
 
     M2= np.vstack((temp, np.array([4, 5, 7])))
     sim = matrix_cosine_similary(M1, M2)

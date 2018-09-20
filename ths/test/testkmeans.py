@@ -1,13 +1,14 @@
 from ths.utils.files import GloveEmbedding
 from ths.utils.sentences import SentenceToIndices, SentenceToEmbeddingWithEPSILON, PadSentences
-from ths.utils.similarity import matrix_cosine_similary
+from ths.utils.similarity import matrix_cosine_similary, distance_similarity_matrix
 
 def main():
     G = GloveEmbedding("../test/data/glove.6B.50d.txt")
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     #print("locon: ", word_to_idx["locon"])
     print("Length dictionary: ", len(word_to_idx))
-    s = "I love New York and music locon"
+    #s = "I love New York and music locon"
+    s = "The flu is making me sad"
     s = s.lower()
     print("Sentence: ", s)
     S = SentenceToIndices(word_to_idx)
@@ -15,10 +16,10 @@ def main():
     print("Sentence to indices: ", sentence)
     print("Padded: ", PadSentences(10).pad(sentence))
     SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
-    matrix1 = SE.map_sentence(s, max_len=10)
+    matrix1 = SE.map_sentence(s, max_len=len(s))
 
-    s2 = "New york rules my man".lower()
-    matrix2 = SE.map_sentence(s2, max_len=10);
+    s2 = "The flu is making me sad".lower()
+    matrix2 = SE.map_sentence(s2, max_len=len(s2))
 
 
     print("Matrix: ", matrix1)
@@ -28,7 +29,7 @@ def main():
 
     print("Self Similarity: ", matrix_cosine_similary(matrix1, matrix1))
     print("Matrix Similarity: ", matrix_cosine_similary(matrix1, matrix2))
-
+    print("Similarity: ", distance_similarity_matrix(matrix_cosine_similary(matrix1, matrix2)))
     # print("Embedding i: ", embedding[word_to_idx["i"]])
     #
     # sentences = []
