@@ -1,5 +1,7 @@
 import numpy as np
 
+EPSILON_VALUE = 0.000000001
+
 class UnkWords:
     def __init__(self, word_to_idx):
         pass
@@ -85,6 +87,34 @@ class SentenceToEmbedding:
                     matrix = np.vstack([matrix, zero_vector])
         return matrix
 
+class SentenceToEmbeddingWithEPSILON:
+    def __init__(self, word_to_idx, idx_to_word, word_to_vect):
+        self.word_to_idx = word_to_idx
+        self.idx_to_word = idx_to_word
+        self.word_to_vect = word_to_vect
+
+    def map_sentence(self, sentence, max_len = 0):
+        S = SentenceToIndices(self.word_to_idx)
+        matrix = None
+        mapped_sentence = S.map_sentence(sentence)
+        for i in mapped_sentence:
+            e = self.word_to_vect[i]
+            if matrix is None:
+                matrix = np.array(e)
+            else:
+                matrix = np.vstack([matrix, e])
+        if max_len > 0:
+            padding_len = max_len - len(mapped_sentence)
+            #print("max_len: ", max_len)
+            #print("len(mapped_sentence): ", len(mapped_sentence))
+            #print("padding: ", padding_len)
+            if padding_len > 0:
+                shape = matrix[0].shape
+                zero_vector = np.ones(shape) * EPSILON_VALUE
+                for _ in range(0, padding_len):
+                    matrix = np.vstack([matrix, zero_vector])
+
+        return matrix
 
 class TrimSentences:
     def __init__(self, trim_size):
