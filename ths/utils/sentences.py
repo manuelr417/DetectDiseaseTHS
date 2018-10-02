@@ -108,11 +108,16 @@ class SentenceToEmbeddingWithEPSILON:
             #print("max_len: ", max_len)
             #print("len(mapped_sentence): ", len(mapped_sentence))
             #print("padding: ", padding_len)
+
             if padding_len > 0:
                 shape = matrix[0].shape
+                if(len(mapped_sentence)==1):
+                    shape=(50, )
                 zero_vector = np.ones(shape) * EPSILON_VALUE
                 for _ in range(0, padding_len):
                     matrix = np.vstack([matrix, zero_vector])
+
+
 
         return matrix
 
