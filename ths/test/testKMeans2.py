@@ -118,6 +118,33 @@ def clusterAsignment(finaldata, c1, c2, c3):
     return cluster1, cluster2, cluster3
 
 
+def clusterAsignmentv2(finaldata, c1, c2, c3, tweet):
+    cluster1 = []
+    cluster2 = []
+    cluster3 = []
+    dictionary = {}
+    i = 0
+    for line in finaldata:
+        sim1 = matrix_cosine_similary(c1, line)
+        sim2 = matrix_cosine_similary(c2, line)
+        sim3 = matrix_cosine_similary(c3, line)
+        S1 = distance_similarity_matrix(sim1)
+        S2 = distance_similarity_matrix(sim2)
+        S3 = distance_similarity_matrix(sim3)
+        m = min(S1,S2,S3)
+        if(m==S1):
+            cluster1.append(line)
+            dictionary[tweet[i]] = 1
+        elif(m==S2):
+            cluster2.append(line)
+            dictionary[tweet[i]] = 2
+        else:
+            cluster3.append(line)
+            dictionary[tweet[i]] = 3
+        i += 1
+    return cluster1, cluster2, cluster3, dictionary
+
+
 def moveCentroid(cluster1, cluster2, cluster3, c1, c2, c3):
     sumc1 = np.sum(cluster1, axis=0)
     sumc2 = np.sum(cluster2, axis=0)
@@ -203,10 +230,14 @@ if __name__ == "__main__":
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     S = SentenceToIndices(word_to_idx)
     data = []
+
+    dictionary1  = {}
+    dictionary2  = {}
     try:
         datafile = open("data/small_tweets.txt", "r", encoding='utf-8')
         with datafile as f:
             for line in f:
+                data.append(line.strip())
                 data.append(line)
     except Exception as e:
         print(e)
@@ -215,6 +246,9 @@ if __name__ == "__main__":
     SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
     finaldata = []
     for line in data:
+        emb = SE.map_sentence(line.lower(), max_len=max_len)
+        finaldata.append(emb)
+        dictionary1[line] = emb
         finaldata.append(SE.map_sentence(line.lower(), max_len=max_len))
 
     #c1, c2, c3 = setCentroidsFromLabel("data/clusterone.txt", "data/clustertwo.txt", "data/clusterthree.txt", max_len)
@@ -231,7 +265,9 @@ if __name__ == "__main__":
     next = True
     while(next):
         print("Step 2: Starting")
-        cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
+        #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
+        cluster1, cluster2, cluster3, dictionary2 = clusterAsignmentv2(finaldata, oldc1, oldc2, oldc3, data)
+        #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
         print("Step 2: passed")
 
         #Step 3: Move Clusters
@@ -306,4 +342,14 @@ if __name__ == "__main__":
     elif (m == S2):
         print("Asignado a Cluster 2: ", neither)
     else:
+        print("Asignado a Cluster 3: ", neither)
+
+    count = 0
+    print("cluster 2:")
+    for k,v in dictionary2.items():
+        count+=1
+        if (v == 2):
+            print(k)
+        if count == 50:
+            break
         print("Asignado a Cluster 3: ", neither)
