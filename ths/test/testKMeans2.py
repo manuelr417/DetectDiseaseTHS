@@ -117,6 +117,7 @@ def clusterAsignment(finaldata, c1, c2, c3):
             cluster3.append(line)
     return cluster1, cluster2, cluster3
 
+
 def clusterAsignmentv2(finaldata, c1, c2, c3, tweet):
     cluster1 = []
     cluster2 = []
@@ -142,6 +143,7 @@ def clusterAsignmentv2(finaldata, c1, c2, c3, tweet):
             dictionary[tweet[i]] = 3
         i += 1
     return cluster1, cluster2, cluster3, dictionary
+
 
 def moveCentroid(cluster1, cluster2, cluster3, c1, c2, c3):
     sumc1 = np.sum(cluster1, axis=0)
@@ -228,14 +230,15 @@ if __name__ == "__main__":
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     S = SentenceToIndices(word_to_idx)
     data = []
+
     dictionary1  = {}
     dictionary2  = {}
-
     try:
         datafile = open("data/small_tweets.txt", "r", encoding='utf-8')
         with datafile as f:
             for line in f:
                 data.append(line.strip())
+                data.append(line)
     except Exception as e:
         print(e)
     max_len = get_max_len(data)
@@ -246,6 +249,7 @@ if __name__ == "__main__":
         emb = SE.map_sentence(line.lower(), max_len=max_len)
         finaldata.append(emb)
         dictionary1[line] = emb
+        finaldata.append(SE.map_sentence(line.lower(), max_len=max_len))
 
     #c1, c2, c3 = setCentroidsFromLabel("data/clusterone.txt", "data/clustertwo.txt", "data/clusterthree.txt", max_len)
     c1, c2, c3 = setCentroidsRandom(data, max_len)
@@ -263,7 +267,7 @@ if __name__ == "__main__":
         print("Step 2: Starting")
         #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
         cluster1, cluster2, cluster3, dictionary2 = clusterAsignmentv2(finaldata, oldc1, oldc2, oldc3, data)
-
+        #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
         print("Step 2: passed")
 
         #Step 3: Move Clusters
@@ -348,3 +352,4 @@ if __name__ == "__main__":
             print(k)
         if count == 50:
             break
+        print("Asignado a Cluster 3: ", neither)
