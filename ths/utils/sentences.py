@@ -134,7 +134,6 @@ class TrimSentences:
             temp = self.trim(s)
             result.append(temp)
         return result
-=======
 import numpy as np
 
 EPSILON_VALUE = 0.000000001
