@@ -43,7 +43,7 @@ def max_len_three(file1, file2, file3):
 def get_max_len(file):
     max_len = 0
     SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
-    for line in data:
+    for line in file:
         matrix = SE.map_sentence(line.lower())
         tweet_len = len(matrix)
         if tweet_len > max_len:
@@ -80,18 +80,17 @@ def setCentroidsFromLabel(file1, file2, file3, max_len):
     return centroid1, centroid2, centroid3
 
 
-def setCentroidsRandom(data, max_len):
-    centroid1 = random.choice(data)
-    centroid2 = random.choice(data)
-    centroid3 = random.choice(data)
-    print("centroid 1: ", centroid1)
-    print("centroid 2: ", centroid2)
-    print("centroid 3: ", centroid3)
-    if centroid1 != centroid2 and  centroid1 != centroid3 and centroid2 != centroid3 :
-        SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
-        c1 = SE.map_sentence((centroid1.lower()), max_len=max_len)
-        c2 = SE.map_sentence((centroid2.lower()), max_len=max_len)
-        c3 = SE.map_sentence((centroid3.lower()), max_len=max_len)
+def setCentroidsRandom(finaldata, max_len):
+    i = random.choice(list(enumerate(finaldata)))[0]
+    c1 = finaldata[i]
+    j = random.choice(list(enumerate(finaldata)))[0]
+    c2 = finaldata[j]
+    k = random.choice(list(enumerate(finaldata)))[0]
+    c3 = finaldata[k]
+    print("centroid 1: ", data[i])
+    print("centroid 2: ", data[j])
+    print("centroid 3: ", data[k])
+    if (i != j) and (i!= k) and (k != j):
         return c1, c2, c3
     else:
         setCentroidsRandom(data, max_len)
@@ -118,7 +117,7 @@ def clusterAsignment(finaldata, c1, c2, c3):
     return cluster1, cluster2, cluster3
 
 
-def clusterAsignmentv2(finaldata, c1, c2, c3, tweet):
+def clusterAsignmentv2(finaldata, c1, c2, c3):
     cluster1 = []
     cluster2 = []
     cluster3 = []
@@ -134,13 +133,13 @@ def clusterAsignmentv2(finaldata, c1, c2, c3, tweet):
         m = min(S1,S2,S3)
         if(m==S1):
             cluster1.append(line)
-            dictionary[tweet[i]] = 1
+            dictionary[data[i]] = 1
         elif(m==S2):
             cluster2.append(line)
-            dictionary[tweet[i]] = 2
+            dictionary[data[i]] = 2
         else:
             cluster3.append(line)
-            dictionary[tweet[i]] = 3
+            dictionary[data[i]] = 3
         i += 1
     return cluster1, cluster2, cluster3, dictionary
 
@@ -149,7 +148,6 @@ def moveCentroid(cluster1, cluster2, cluster3, c1, c2, c3):
     sumc1 = np.sum(cluster1, axis=0)
     sumc2 = np.sum(cluster2, axis=0)
     sumc3 = np.sum(cluster3, axis=0)
-
     if(len(cluster1)>0):
         newc1 = (1.0 / len(cluster1)) * sumc1
         c1 = newc1
@@ -163,13 +161,6 @@ def moveCentroid(cluster1, cluster2, cluster3, c1, c2, c3):
 
 #c = centroid
 def centroidsSimilarity(c1, oldc1, c2, oldc2, c3, oldc3):
-    sim1 = matrix_cosine_similary(c1, oldc1)
-    sim2 = matrix_cosine_similary(c2, oldc2)
-    sim3 = matrix_cosine_similary(c3, oldc3)
-    print("Sim1: ", sim1)
-    print("Distance C1 - oldC1: ", distance_similarity_matrix(sim1))
-    print("Distance C2 - oldC2: ", distance_similarity_matrix(sim2))
-    print("Distance C3 - oldC3: ", distance_similarity_matrix(sim3))
     if (oldc1 == c1).all() and (oldc2 == c2).all() and (oldc3 == c3).all():
         return True
     else:
@@ -183,39 +174,24 @@ def clustersSimilarity(cl1, oldcl1, cl2, oldcl2, cl3, oldcl3):
     else:
         return False
 
-def epsilonSimilarity(cl1, oldcl1, cl2, oldcl2, cl3, oldcl3):
+
+def epsilonSimilarity(c1, oldc1, c2, oldc2, c3, oldc3):
     print("Entered in empsilonSimilarity")
     EPSILON_VALUE = 0.01
-    if np.array(cl1).size > 0 and np.array(oldcl1).size > 0 and np.array(cl2).size > 0 and np.array(oldcl2).size > 0 and np.array(cl3).size > 0 and np.array(oldcl3).size > 0:
-        EM1 = np.ones(cl1[0].shape) * EPSILON_VALUE
-        EM2 = np.ones(cl2[0].shape) * EPSILON_VALUE
-        EM3 = np.ones(cl3[0].shape) * EPSILON_VALUE
 
-        #cluster 1
-        if len(cl1) == len(oldcl1):
-            ans1 = ((np.array(cl1)- np.array(oldcl1)).all() < EM1 ).all()
-        else:
-            ans1 = False
-        print("Answer Epsilon 1: ", ans1)
+    shape = np.array(c1).shape
+    EM = np.ones(shape) * EPSILON_VALUE
+    #cluster 1
+    ans1 = (np.array(c1)- np.array(oldc1) < EM ).all()
+    print("Epsilon 1: ", ans1)
 
-        #cluster 2
-        if len(cl2) == len(oldcl2):
-            ans2 = ((np.array(cl2) - np.array(oldcl2)).all() < EM2).all()
-        else:
-            ans2 = False
-        print("Answer Epsilon 1: ", ans2)
+    #cluster 2
+    ans2 = (np.array(c2)- np.array(oldc2) < EM ).all()
+    print("Epsilon 2: ", ans2)
 
-        #cluster 3
-        if len(cl3) == len(oldcl3):
-            ans3 = ((np.array(cl3) - np.array(oldcl3)).all() < EM3).all()
-        else:
-            ans3 = False
-        print("Answer Epsilon 1: ", ans3)
-
-    else:
-        ans1 = False
-        ans2 = False
-        ans3 = False
+    #cluster 3
+    ans3 = (np.array(c3)- np.array(oldc3) < EM ).all()
+    print("Epsilon 3: ", ans3)
 
     if ans1 and ans2 and ans3:
         return True
@@ -229,30 +205,27 @@ if __name__ == "__main__":
     G = GloveEmbedding("../test/data/glove.twitter.27B.50d.txt")
     word_to_idx, idx_to_word, embedding = G.read_embedding()
     S = SentenceToIndices(word_to_idx)
+    SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
     data = []
-
     dictionary1  = {}
     dictionary2  = {}
     try:
         datafile = open("data/small_tweets.txt", "r", encoding='utf-8')
         with datafile as f:
             for line in f:
-                data.append(line.strip())
-                data.append(line)
+                newline = " ".join(line.split())
+                data.append(newline)
     except Exception as e:
         print(e)
     max_len = get_max_len(data)
-
-    SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
     finaldata = []
     for line in data:
         emb = SE.map_sentence(line.lower(), max_len=max_len)
         finaldata.append(emb)
         dictionary1[line] = emb
-        finaldata.append(SE.map_sentence(line.lower(), max_len=max_len))
 
-    #c1, c2, c3 = setCentroidsFromLabel("data/clusterone.txt", "data/clustertwo.txt", "data/clusterthree.txt", max_len)
-    c1, c2, c3 = setCentroidsRandom(data, max_len)
+    c1, c2, c3 = setCentroidsFromLabel("data/clusterone.txt", "data/clustertwo.txt", "data/clusterthree.txt", max_len)
+    #c1, c2, c3 = setCentroidsRandom(finaldata, max_len)
     print("Step 1: passed")
     #Step 2: Cluster Asignment
     n = 0
@@ -266,23 +239,21 @@ if __name__ == "__main__":
     while(next):
         print("Step 2: Starting")
         #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
-        cluster1, cluster2, cluster3, dictionary2 = clusterAsignmentv2(finaldata, oldc1, oldc2, oldc3, data)
+        cluster1, cluster2, cluster3, dictionary2 = clusterAsignmentv2(finaldata, oldc1, oldc2, oldc3)
         #cluster1, cluster2, cluster3 = clusterAsignment(finaldata, oldc1, oldc2, oldc3)
         print("Step 2: passed")
-
         #Step 3: Move Clusters
         print("Step 3: Starting")
         c1, c2, c3 = moveCentroid(cluster1, cluster2, cluster3, oldc1, oldc2, oldc3)
         n+=1
         print("Step 3: passed")
-        print("Simulation #: ", n, " finished")
-
+        print("Simulation #:", n, "finished")
         #Step 4: Calculate similarity of clusters and centroids
-        #result = centroidsSimilarity(c1, oldc1, c2, oldc2, c3, oldc3)
-        if n < 20:
+        if n < 25:
+            # result = centroidsSimilarity(c1, oldc1, c2, oldc2, c3, oldc3)
             result = clustersSimilarity(cluster1, oldcluster1, cluster2, oldcluster2, cluster3, oldcluster3)
         else:
-            result = epsilonSimilarity(cluster1, oldcluster1, cluster2, oldcluster2, cluster3, oldcluster3)
+            result = epsilonSimilarity(c1, oldc1, c2, oldc2, c3, oldc3)
 
         if(result):
             next = False
@@ -298,9 +269,43 @@ if __name__ == "__main__":
                 next = False
     print("End Simulation: ")
 
+count = 0
+f1 = ""
+f2 = ""
+f3 = ""
+for k, v in dictionary2.items():
+    count += 1
+    if (v == 1):
+        f1 += k + "\n"
+    if (v == 2):
+        f2 += k + "\n"
+    if (v == 3):
+        f3 += k + "\n"
+    if count == 50:
+        break
+
+file1 = open('../test/output/cluster1.txt', 'w', encoding='utf-8')
+file1.write(f1)
+file1.close()
+file2 = open('../test/output/cluster2.txt', 'w', encoding='utf-8')
+file2.write(f2)
+file2.close()
+file3 = open('../test/output/cluster3.txt', 'w', encoding='utf-8')
+file3.write(f3)
+file3.close()
+
+print("End writing files")
+
+
+
+SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
+matrix = finaldata[1]
+S1 = distance_similarity_matrix(matrix_cosine_similary(matrix, matrix))
+print(S1)
+"""
     #5: Test Cluster
     isDisease = "make america great again"
-    isnotDisease = "sawyer premium insect repellent w20 picaridin lotion 50 pack"
+    isnotDisease = "i got flu today"
     neither = "the flu is poking holes in hospital cybersecurity and a shot cannot save you"
     SE = SentenceToEmbeddingWithEPSILON(word_to_idx, idx_to_word, embedding)
 
@@ -312,7 +317,7 @@ if __name__ == "__main__":
     S2 = distance_similarity_matrix(matrix_cosine_similary(c2, matrix1))
     S3 = distance_similarity_matrix(matrix_cosine_similary(c3, matrix1))
     m = min(S1, S2, S3)
-
+    print(S1, S2, S3)
     if (m == S1):
         print("Asignado a Cluster 1: ", isDisease)
     elif (m == S2):
@@ -324,7 +329,7 @@ if __name__ == "__main__":
     S2 = distance_similarity_matrix(matrix_cosine_similary(c2, matrix2))
     S3 = distance_similarity_matrix(matrix_cosine_similary(c3, matrix2))
     m = min(S1, S2, S3)
-
+    print(S1, S2, S3)
     if (m == S1):
         print("Asignado a Cluster 1: ", isnotDisease)
     elif (m == S2):
@@ -336,7 +341,7 @@ if __name__ == "__main__":
     S2 = distance_similarity_matrix(matrix_cosine_similary(c2, matrix3))
     S3 = distance_similarity_matrix(matrix_cosine_similary(c3, matrix3))
     m = min(S1, S2, S3)
-
+    print(S1, S2, S3)
     if (m == S1):
         print("Asignado a Cluster 1: ", neither)
     elif (m == S2):
@@ -344,12 +349,4 @@ if __name__ == "__main__":
     else:
         print("Asignado a Cluster 3: ", neither)
 
-    count = 0
-    print("cluster 2:")
-    for k,v in dictionary2.items():
-        count+=1
-        if (v == 2):
-            print(k)
-        if count == 50:
-            break
-        print("Asignado a Cluster 3: ", neither)
+"""
