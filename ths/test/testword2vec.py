@@ -50,7 +50,6 @@ def main():
             data = [word] + e.tolist()
             out_f.writerow(data)
         f.flush()
-
     print("Done")
 
 if __name__ == "__main__":
