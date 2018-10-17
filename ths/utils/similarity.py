@@ -26,3 +26,34 @@ def matrix_cosine_similary(M, N):
 def distance_similarity_matrix(S):
     I  = np.ones(S.shape)
     return np.average(I - S)
+
+def TriUL_DM(S):
+    triu = np.triu(S)
+    tril = np.tril(S)
+    return np.abs(np.sum(triu-tril))
+
+def TriUL_sim(A,B):
+    S = matrix_cosine_similary(A, B)
+    return  TriUL_DM(S)
+
+def Frobenius_Norm(M):
+    entry_sqr_sum = M**2
+    return np.sqrt(np.sum(entry_sqr_sum))
+
+def L1_Norm(M):
+    entry_sum = np.sum(M)
+    return entry_sum
+
+def Frobenius_Distance(A, B):
+    M = A - B
+    return Frobenius_Norm(M)
+
+def L1_Distance(A, B):
+    M = A- B
+    return L1_Norm(M)
+
+def build_matrix(row_list):
+    M = np.array(row_list[0])
+    for r in range(1, len(row_list)):
+        M = np.vstack((M, np.array(row_list[r])))
+    return M
