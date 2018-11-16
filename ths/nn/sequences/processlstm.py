@@ -120,10 +120,10 @@ class ProcessTweetsWord2VecOnePassLSTMv2_1:
         #Y_train = to_categorical(Y_train, num_classes=3)
         print("Train data convert to numpy arrays")
         #NN = TweetSentiment2DCNN(trim_size, G)
-        #NN = TweetSentiment2LSTM2Dense(trim_size, G)
+        NN = TweetSentiment2LSTM2Dense(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense3Layer(trim_size, G)
         #NN =TweetSentiment2LSTM2Dense4Layer(trim_size, G)
-        NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
+        #NN = TweetSentiment2LSTM2Attentionv2(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
 
