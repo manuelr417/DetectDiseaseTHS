@@ -24,6 +24,18 @@ decoder_dense = Dense(num_decoder_tokens, activation='softmax')
 decoder_outputs = decoder_dense(decoder_outputs)
 # Define the model that will turn
 # `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
-model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+train_model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 # plot the model
-plot_model(model, to_file='model.png', show_shapes=True)
+#plot_model(model, to_file='model.png', show_shapes=True)
+#define inference encoder
+encoder_model = Model(encoder_inputs, encoder_states)
+#define inference decoder
+decoder_state_input_h = Input(shape=(latent_dim,))
+decoder_state_input_c = Input(shape=(latent_dim),)
+decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+decoder_outputs, state_h, state_c = decoder_lstm(decoder_inputs, initial_state=decoder_states_inputs)
+decoder_states = [state_h, state_c]
+decoder_outputs = decoder_dense(decoder_outputs)
+decoder_model = Model([decoder_inputs] + decoder_states_inputs, [decoder_outputs] + decoder_states)
+
+
