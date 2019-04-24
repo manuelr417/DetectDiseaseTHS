@@ -9,6 +9,7 @@ def main():
     M.summary()
     M.plot("data/model2")
 
+
 #joderme
 if __name__ == "__main__":
     main()
