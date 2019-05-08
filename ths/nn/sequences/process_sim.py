@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from keras.regularizers import l2
 from ths.nn.metrics.f1score import f1, precision, recall, fprate
 from ths.utils.synomymos import OverSampleSynonym
-from ths.nn.sequences.tweetsimilarity import TweetSimilaryBasic
+from ths.nn.sequences.tweetsimilarity import TweetSimilaryBasic, TweetSimilaryBasicBiDirectional, TweetSimilaryConvInception
 
 import numpy as np
 import csv
@@ -159,7 +159,10 @@ class ProcessTweetsSimBasic:
         # Create the NN
         labels_dim = 2
         diases_dim = 4
-        NN = TweetSimilaryBasic(max_sentence_len=max_len, embedding_builder=G, labels_dim = labels_dim, diases_dim = diases_dim)
+        #NN = TweetSimilaryBasic(max_sentence_len=max_len, embedding_builder=G, labels_dim = labels_dim, diases_dim = diases_dim)
+        #NN = TweetSimilaryBasicBiDirectional(max_sentence_len=max_len, embedding_builder=G, labels_dim = labels_dim, diases_dim = diases_dim)
+        NN = TweetSimilaryConvInception(max_sentence_len=max_len, embedding_builder=G, labels_dim = labels_dim, diases_dim = diases_dim)
+
         # Build the NN
         NN.build()
         # Summary
