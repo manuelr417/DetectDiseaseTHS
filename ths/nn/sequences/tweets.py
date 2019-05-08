@@ -189,15 +189,16 @@ class TweetSentiment2LSTM2Dense(TweetSentiment2LSTM):
         X = Dropout(second_layer_dropout, name="DROPOUT_2")(X)
         #X = Dense(128, name="DENSE_1", activation='relu')(X)
         # Send to a Dense Layer with sigmoid activation
+        dense_layer_units=3
         X = Dense(dense_layer_units, name="DENSE_2")(X)
         #X = Activation("sigmoid", name="SIGMOID_1")(X)
-        X = Activation("softmax", name="SIGMOID_1")(X)
+        X = Activation("softmax", name="SOFTMAX")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
 
     def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
         return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
-                       validation_split=validation_split, class_weight=class_weight, verbose=2)
+                       validation_split=validation_split, class_weight=class_weight, verbose=1)
 
 class TweetSentiment2LSTM2DenseSM(TweetSentiment2LSTM):
     def __init__(self, max_sentence_len, embedding_builder):
@@ -786,8 +787,10 @@ class TweetSentiment2LSTM2Dense3Layer(TweetSentiment2LSTM):
         X = Dropout(third_layer_dropout, name="DROPOUT_3")(X)
         X = Dense(128, name="DENSE_1", activation='relu')(X)
         # Send to a Dense Layer with sigmoid activation
+        dense_layer_units = 3
         X = Dense(dense_layer_units, name="DENSE_2")(X)
-        X = Activation("sigmoid", name="SIGMOID_1")(X)
+
+        X = Activation("sigmoid", name="SOFTMAX")(X)
         # create the model
         self.model = Model(input=sentence_input, output=X)
 

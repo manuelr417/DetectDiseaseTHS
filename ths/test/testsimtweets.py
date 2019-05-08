@@ -7,7 +7,7 @@ def main():
     M = TweetSimilaryBasic(72, G, 5, 3)
     M.build()
     M.summary()
-    M.plot("data/model2")
+    M.plot("data/model3")
 
 
 #joderme
