@@ -35,7 +35,7 @@ class ProcessTweetsSimBasic:
 
         return np.hstack((D, L))
 
-    def process(self, json_filename, h5_filename, plot=False, epochs = 100, vect_dimensions = 50):
+    def process(self, json_filename, h5_filename, prod_json_file, prod_h5_filename, plot=False, epochs = 100, vect_dimensions = 50):
         np.random.seed(11)
         # open the file with tweets
         X_all = []
@@ -175,6 +175,8 @@ class ProcessTweetsSimBasic:
         Y_t1_t3_relevance = np.array(Y_t1_t3_relevance)
         Y_all  = np.array(Y_all)
         history = NN.fit(X=[X_one_train, X_two_train, X_three_train, X_one_aux_train, X_two_aux_train, X_three_aux_train], Y = [Y_t1_t2_relevance, Y_t1_t3_relevance, Y_all], epochs=10)
+        # Save the model
+        NN.save_model_data(json_filename, h5_filename, prod_json_file, prod_h5_filename)
         print(history)
         print("Done!")
 
