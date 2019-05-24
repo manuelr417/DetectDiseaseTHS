@@ -5,6 +5,9 @@ from keras.layers import TimeDistributed, Dense, Input, Dropout, LSTM, Activatio
 from keras.layers import Subtract, Multiply, Concatenate, Lambda, ZeroPadding2D
 from keras.backend import abs
 
+import matplotlib.pyplot as plt
+
+
 from keras.layers.embeddings import Embedding
 from keras.regularizers import l2
 from sklearn.preprocessing import LabelBinarizer
@@ -253,6 +256,25 @@ class TweetSimilaryBasic:
         self.diases_dim = diases_dim
         self.labels_dim = labels_dim
 
+    def plot_stats(self, history):
+        # summarize history for accuracy
+        plt.figure(1)
+        plt.plot(history.history['FINAL_acc'])
+        plt.plot(history.history['val_FINAL_acc'])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        # summarize history for loss
+        plt.figure(2)
+        plt.plot(history.history['FINAL_loss'])
+        plt.plot(history.history['val_FINAL_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+
     def build(self, first_layer_units=128, first_layer_dropout=0.5, second_layer_units=128,
               second_layer_dropout=0.5, dense_layer_units=2):
 
@@ -376,7 +398,7 @@ class TweetSimilaryBasic:
 
     def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
         return self.model_training.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
-                       validation_split=validation_split, class_weight=class_weight)
+                       validation_split=validation_split, class_weight=class_weight, verbose=2)
 
     def evaluate(self, X_test, Y_test):
         return self.model_training.evaluate(X_test, Y_test)
@@ -518,7 +540,7 @@ class TweetSimilaryConvInception(TweetSimilaryBasic):
         E2  = embeddings_layer(tweet_two)
         E3  = embeddings_layer(tweet_three)
 
-        # Combiner - two LSTM in sequence
+        # Combiner - two inceptions
 
         # def basic_inception(max_sentencen_len, dimensions, embeddings, filters, padding, activation):
 
@@ -564,6 +586,7 @@ class TweetSimilaryConvInception(TweetSimilaryBasic):
         dense5 = Dense(1, activation='sigmoid', name="FINAL")
         final_concat = Concatenate(name="concatF")([V1, V2])
         F_class = dense3(final_concat)
+        F_class = Dropout(0.10)(F_class)
         F_class = dense4(F_class)
         F_class = dense5(F_class)
 

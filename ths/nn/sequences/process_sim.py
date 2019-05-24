@@ -172,15 +172,18 @@ class ProcessTweetsSimBasic:
         #           metrics=['mse', 'mse','acc'], loss_weight=[ 1., 1., 1.0])
 
         NN.compile(optimizer='rmsprop', loss={'R1' : 'mean_squared_error', 'R2' : 'mean_squared_error', 'FINAL' : 'binary_crossentropy'},
-                   metrics={'R1' : 'mse', 'R2' : 'mse', 'FINAL' : 'acc'}, loss_weights= {'R1' : 1., 'R2' : 1., 'FINAL' : 1.0})
+                   metrics={'R1' : 'mse', 'R2' : 'mse', 'FINAL' : 'acc'}, loss_weights= {'R1' : 0.25, 'R2' : 0.25, 'FINAL' : 10})
 
         Y_t1_t2_relevance = np.array(Y_t1_t2_relevance)
         Y_t1_t3_relevance = np.array(Y_t1_t3_relevance)
         Y_all  = np.array(Y_all)
-        history = NN.fit(X=[X_one_train, X_two_train, X_three_train, X_one_aux_train, X_two_aux_train, X_three_aux_train], Y = [Y_t1_t2_relevance, Y_t1_t3_relevance, Y_all], epochs=10)
+        history = NN.fit(X=[X_one_train, X_two_train, X_three_train, X_one_aux_train, X_two_aux_train, X_three_aux_train], Y = [Y_t1_t2_relevance, Y_t1_t3_relevance, Y_all], epochs=epochs, validation_split=0.20)
+
         # Save the model
         NN.save_model_data(json_filename, h5_filename, prod_json_file, prod_h5_filename)
-        print(history)
+        NN.plot_stats(history)
+        #print(history)
+        #print(history.history.keys())
         print("Done!")
 
 
