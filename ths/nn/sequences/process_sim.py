@@ -10,6 +10,7 @@ from keras.regularizers import l2
 from ths.nn.metrics.f1score import f1, precision, recall, fprate
 from ths.utils.synomymos import OverSampleSynonym
 from ths.nn.sequences.tweetsimilarity import TweetSimilaryBasic, TweetSimilaryBasicBiDirectional, TweetSimilaryConvInception
+from sklearn.utils import class_weight
 
 import numpy as np
 import csv
@@ -177,7 +178,14 @@ class ProcessTweetsSimBasic:
         Y_t1_t2_relevance = np.array(Y_t1_t2_relevance)
         Y_t1_t3_relevance = np.array(Y_t1_t3_relevance)
         Y_all  = np.array(Y_all)
-        history = NN.fit(X=[X_one_train, X_two_train, X_three_train, X_one_aux_train, X_two_aux_train, X_three_aux_train], Y = [Y_t1_t2_relevance, Y_t1_t3_relevance, Y_all], epochs=epochs, validation_split=0.20)
+        class_weight_val = class_weight.compute_class_weight('balanced', np.unique(Y_all), Y_all)
+        print("type(class_weight_val): ",type(class_weight_val))
+        print("class_weight_val", class_weight_val)
+        final_class_weight_val = {'R1' : None, 'R2' : None, 'FINAL' : class_weight_val}
+        print("final_class_weight_val: ", final_class_weight_val)
+        history = NN.fit(X=[X_one_train, X_two_train, X_three_train, X_one_aux_train, X_two_aux_train, X_three_aux_train], Y = [Y_t1_t2_relevance, Y_t1_t3_relevance, Y_all], epochs=epochs, validation_split=0.20,
+                         class_weight=final_class_weight_val)
+
 
         # Save the model
         NN.save_model_data(json_filename, h5_filename, prod_json_file, prod_h5_filename)
