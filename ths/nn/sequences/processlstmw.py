@@ -344,10 +344,11 @@ class ProcessTweetsWord2VecTwoPassLSTMv2_1:
         NN.compile(optimizer='rmsprop', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
-        callback = TensorBoard(log_dir="/tmp/logs")
+        #callback = TensorBoard(log_dir="/tmp/logs")
         #class_weight = {0: 0.67, 1: 0.33}
         #class_weight = None
-        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, callbacks=[callback], class_weight=class_weight_dictionary)
+        #history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, callbacks=[callback], class_weight=class_weight_dictionary)
+        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, class_weight=class_weight_dictionary)
         print("Model trained")
         print("Predicting")
         print("len(X_test): ", X_test)
