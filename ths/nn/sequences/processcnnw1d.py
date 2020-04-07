@@ -110,7 +110,7 @@ class ProcessTweetsCNN1D:
         #Get embeeding
         #G = Word2VecEmbedding(self.embedding_filename, dimensions=vect_dimensions)
 
-        G = GloveEmbedding(self.embedding_filename, dimensions=50)
+        G = GloveEmbedding(self.embedding_filename, dimensions=vect_dimensions)
         word_to_idx, idx_to_word, embedding = G.read_embedding()
         S = SentenceToIndices(word_to_idx)
         X_train_indices, max_len  = S.map_sentence_list(X_train_sentences)
