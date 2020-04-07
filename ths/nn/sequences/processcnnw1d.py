@@ -1,5 +1,5 @@
 from ths.nn.sequences.tweets import TweetSentiment2DCNNv2_1, TweetSentiment2LSTM2Dense, TweetSentiment2LSTM2Dense3Layer, TweetSentiment2LSTM2Dense4Layer, TweetSentiment2LSTM2Attention, TweetSentiment2LSTM2Attentionv2
-from ths.nn.sequences.cnn1d import TweetSentiment1D, TweetSentiment1DRev
+from ths.nn.sequences.cnn1d import TweetSentiment1D, TweetSentiment1DRev, TweetSentiment1DV2
 from ths.nn.sequences.tweets import TweetSentimentCNN
 
 from ths.utils.files import GloveEmbedding, Word2VecEmbedding
@@ -156,8 +156,8 @@ class ProcessTweetsCNN1D:
         #NN = TweetSentimentCNN(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
-        #NN = TweetSentiment1D(trim_size, G)
-        NN = TweetSentiment1DRev(trim_size, G)
+        NN = TweetSentiment1DV2(trim_size, G)
+        #NN = TweetSentiment1DRev(trim_size, G)
 
 
 
