@@ -60,7 +60,7 @@ class  TweetSentiment1D:
         # create the model
         self.model = Model(input=[sentence_input] , output=X)
 
-    def conv_unit(self, activation, prev_layer, level):
+    def conv_unit_old(self, activation, prev_layer, level):
         level = str(level)
         X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', activation=activation, name="CONV_1_" + level)(
             prev_layer)
@@ -70,6 +70,29 @@ class  TweetSentiment1D:
             prev_layer)
         X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', activation=activation, name="CONV_4_" + level)(
             prev_layer)
+        X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
+        X = MaxPooling1D(name="MAX_POOL_1D" + level)(X)
+        return X
+
+    def conv_unit(self, activation, prev_layer, level):
+        level = str(level)
+        X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
+        X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
+        X1 = Activation(activation=activation, name="ACTIVATION_1_" + level)(X1)
+
+        X2 = Conv1D(filters=64, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
+        X2 = BatchNormalization(name="BATCH_2_" + level)(X2)
+        X2 = Activation(activation=activation, name="ACTIVATION_2_" + level)(X2)
+
+        X3 = Conv1D(filters=64, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
+        X3 = BatchNormalization(name="BATCH_3_" + level)(X3)
+        X3 = Activation(activation=activation, name="ACTIVATION_3_" + level)(X3)
+
+        X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
+        X4 = BatchNormalization(name="BATCH_4_" + level)(X4)
+        X4 = Activation(activation=activation, name="ACTIVATION_4_" + level)(X4)
+
+
         X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
         X = MaxPooling1D(name="MAX_POOL_1D" + level)(X)
         return X
