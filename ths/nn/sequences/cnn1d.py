@@ -6,7 +6,7 @@ from ths.utils.sentences import SentenceToEmbedding
 from keras.models import Model
 from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, \
     Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D, AveragePooling2D, \
-    Concatenate, ZeroPadding2D, Multiply, Permute
+    Concatenate, ZeroPadding2D, Multiply, Permute, MaxPooling1D
 
 from keras.layers.embeddings import Embedding
 
@@ -26,15 +26,11 @@ class  TweetSentiment1D:
         embeddings_layer = self.pretrained_embedding_layer()
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
-        X1 = Conv1D(filters = 64, kernel_size=1, strides=1, padding='same',  activation=activation, name="CONV_1")(embeddings1)
 
-        X2 = Conv1D(filters = 64, kernel_size=3, strides=1, padding='same',  activation=activation, name="CONV_2")(embeddings1)
+        X = self.conv_unit(activation, embeddings1, 0)
 
-        X3 = Conv1D(filters = 64, kernel_size=5, strides=1, padding='same',  activation=activation, name="CONV_3")(embeddings1)
+        X = self.conv_unit(activation, X, 1)
 
-        X4 = Conv1D(filters = 64, kernel_size=7, strides=1, padding='same',  activation=activation, name="CONV_4")(embeddings1)
-
-        X= Concatenate()([X1, X2, X3, X4])
         #Flatten
         X = Flatten()(X)
 
@@ -61,6 +57,20 @@ class  TweetSentiment1D:
         X = Dense(3, activation= "softmax", name="SOFTMAX")(X)
         # create the model
         self.model = Model(input=[sentence_input] , output=X)
+
+    def conv_unit(self, activation, prev_layer, level):
+        level = str(level)
+        X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', activation=activation, name="CONV_1_" + level)(
+            prev_layer)
+        X2 = Conv1D(filters=64, kernel_size=3, strides=1, padding='same', activation=activation, name="CONV_2_" + level)(
+            prev_layer)
+        X3 = Conv1D(filters=64, kernel_size=5, strides=1, padding='same', activation=activation, name="CONV_3_" + level)(
+            prev_layer)
+        X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', activation=activation, name="CONV_4_" + level)(
+            prev_layer)
+        X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
+        X = MaxPooling1D(name="MAX_POOL_1D" + level)(X)
+        return X
 
     def pretrained_embedding_layer(self):
         # create Keras embedding layer
