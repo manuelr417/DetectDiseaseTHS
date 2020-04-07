@@ -169,7 +169,7 @@ class ProcessTweetsCNN1D:
         NN.summary()
         sgd = SGD(lr=0.03, momentum=0.009, decay=0.001, nesterov=True)
         rmsprop = RMSprop(decay=0.003)
-        adam = Adam(lr=0.001, decay=0.005)
+        adam = Adam(lr=0.001, decay=0.001)
         sgd = SGD(lr=0.05)
         NN.compile(optimizer=adam, loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
