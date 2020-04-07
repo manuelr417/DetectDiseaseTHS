@@ -28,13 +28,13 @@ class  TweetSentiment1D:
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
 
-        X = self.conv_unit_lrelu(activation, embeddings1, 0)
+        X = self.conv_unit_lrelu(activation, embeddings1, 0, 128)
 
-        X = self.conv_unit_lrelu(activation, X, 1)
+        X = self.conv_unit_lrelu(activation, X, 1, 128)
 
-        X = self.conv_unit_lrelu(activation, X, 2)
+        X = self.conv_unit_lrelu(activation, X, 2, 128)
 
-        X = self.conv_unit_lrelu(activation, X, 3)
+        X = self.conv_unit_lrelu(activation, X, 3, 128)
 
         #Flatten
         X = Flatten()(X)
@@ -46,7 +46,7 @@ class  TweetSentiment1D:
 
 
         # # First dense layer
-        dense_units = 128
+        dense_units = 256
         X = Dense(units=int(dense_units), activation='relu', name="DENSE_1")(X)
         X = Dropout(second_dropout, name="DROPOUT_1")(X)
 
@@ -123,21 +123,21 @@ class  TweetSentiment1D:
         X = MaxPooling1D(name="MAX_POOL_1D" + level)(X)
         return X
 
-    def conv_unit_lrelu(self, activation, prev_layer, level):
+    def conv_unit_lrelu(self, activation, prev_layer, level, filters=64):
         level = str(level)
-        X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
+        X1 = Conv1D(filters=filters, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
         X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
         X1 = LeakyReLU(name="ACTIVATION_1_" + level)(X1)
 
-        X2 = Conv1D(filters=64, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
+        X2 = Conv1D(filters=filters, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
         X2 = BatchNormalization(name="BATCH_2_" + level)(X2)
         X2 = LeakyReLU(name="ACTIVATION_2_" + level)(X2)
 
-        X3 = Conv1D(filters=64, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
+        X3 = Conv1D(filters=filters, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
         X3 = BatchNormalization(name="BATCH_3_" + level)(X3)
         X3 = LeakyReLU(name="ACTIVATION_3_" + level)(X3)
 
-        X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
+        X4 = Conv1D(filters=filters, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
         X4 = BatchNormalization(name="BATCH_4_" + level)(X4)
         X4 = LeakyReLU(name="ACTIVATION_4_" + level)(X4)
 
