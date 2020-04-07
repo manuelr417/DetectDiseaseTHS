@@ -171,7 +171,7 @@ class ProcessTweetsCNN1D:
         rmsprop = RMSprop(decay=0.003)
         adam = Adam(lr=0.1, decay=0.05)
         sgd = SGD(lr=0.05)
-        NN.compile(optimizer='adam', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
+        NN.compile(optimizer='rmsprop', loss="categorical_crossentropy", metrics=['accuracy', precision, recall, f1, fprate])
         print("model compiled")
         print("Begin training")
         #callback = TensorBoard(log_dir="/tmp/logs")
