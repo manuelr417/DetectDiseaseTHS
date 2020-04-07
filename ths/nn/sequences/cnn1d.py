@@ -28,13 +28,13 @@ class  TweetSentiment1D:
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
 
-        X = self.conv_unit_lrelu(activation, embeddings1, 0, 64)
+        X = self.conv_unit_lrelu(activation, embeddings1, 0, 128)
 
         X = self.conv_unit_lrelu(activation, X, 1, 128)
 
-        X = self.conv_unit_lrelu(activation, X, 2, 256)
+        X = self.conv_unit_lrelu(activation, X, 2, 128)
 
-        X = self.conv_unit_lrelu(activation, X, 3, 512)
+        X = self.conv_unit_lrelu(activation, X, 3, 128)
 
         #Flatten
         X = Flatten()(X)
