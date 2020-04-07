@@ -31,6 +31,8 @@ class  TweetSentiment1D:
 
         X = self.conv_unit(activation, X, 1)
 
+        X = self.conv_unit(activation, X, 2)
+
         #Flatten
         X = Flatten()(X)
 
