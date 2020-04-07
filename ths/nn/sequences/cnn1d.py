@@ -7,6 +7,7 @@ from keras.models import Model
 from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, \
     Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D, AveragePooling2D, \
     Concatenate, ZeroPadding2D, Multiply, Permute, MaxPooling1D
+from keras.layers.advanced_activations import LeakyReLU
 
 from keras.layers.embeddings import Embedding
 
@@ -27,11 +28,11 @@ class  TweetSentiment1D:
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
 
-        X = self.conv_unit(activation, embeddings1, 0)
+        X = self.conv_unit_lrelu(activation, embeddings1, 0)
 
-        X = self.conv_unit(activation, X, 1)
+        X = self.conv_unit_lrelu(activation, X, 1)
 
-        X = self.conv_unit(activation, X, 2)
+        X = self.conv_unit_lrelu(activation, X, 2)
 
         #Flatten
         X = Flatten()(X)
@@ -120,6 +121,28 @@ class  TweetSentiment1D:
         X = MaxPooling1D(name="MAX_POOL_1D" + level)(X)
         return X
 
+    def conv_unit_lrelu(self, activation, prev_layer, level):
+        level = str(level)
+        X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
+        X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
+        X1 = LeakyReLU(name="ACTIVATION_1_" + level)(X1)
+
+        X2 = Conv1D(filters=64, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
+        X2 = BatchNormalization(name="BATCH_2_" + level)(X2)
+        X2 = LeakyReLU(name="ACTIVATION_2_" + level)(X2)
+
+        X3 = Conv1D(filters=64, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
+        X3 = BatchNormalization(name="BATCH_3_" + level)(X3)
+        X3 = LeakyReLU(name="ACTIVATION_3_" + level)(X3)
+
+        X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
+        X4 = BatchNormalization(name="BATCH_4_" + level)(X4)
+        X4 = LeakyReLU(name="ACTIVATION_4_" + level)(X4)
+
+
+        X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
+        X = MaxPooling1D(name="MAX_POOL_1D_" + level)(X)
+        return X
     def pretrained_embedding_layer(self):
         # create Keras embedding layer
         word_to_idx, idx_to_word, word_embeddings = self.embedding_builder.read_embedding()
