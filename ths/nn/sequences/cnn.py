@@ -196,7 +196,7 @@ class TweetSentiment2DCNN1x12Channelv2(TweetSentiment2DCNN2Channel):
 
             # Input Layer 1 - tweet in right order
         sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT_1")
-        reverse_sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT_2")
+        reverse_sentence_input = Lambda()
         # Embedding layer
         embeddings_layer = self.pretrained_embedding_layer()
         embeddings1 = embeddings_layer(sentence_input)

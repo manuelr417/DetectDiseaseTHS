@@ -6,11 +6,11 @@ from ths.utils.sentences import SentenceToEmbedding
 from keras.models import Model
 from keras.layers import Dense, Input, Dropout, LSTM, Activation, Bidirectional, BatchNormalization, GRU, Conv1D, \
     Conv2D, MaxPooling2D, Flatten, Reshape, GlobalAveragePooling1D, GlobalMaxPooling1D, AveragePooling1D, AveragePooling2D, \
-    Concatenate, ZeroPadding2D, Multiply, Permute, MaxPooling1D
+    Concatenate, ZeroPadding2D, Multiply, Permute, MaxPooling1D, Lambda
 from keras.layers.advanced_activations import LeakyReLU
 
 from keras.layers.embeddings import Embedding
-
+import keras.backend as K
 
 class  TweetSentiment1D:
     def __init__(self, max_sentence_len, embedding_builder):
@@ -189,3 +189,79 @@ class  TweetSentiment1D:
             json_file.write(json_model)
         self.model.save_weights(h5_filename)
         return
+
+
+class  TweetSentiment1DRev(TweetSentiment1D):
+    def __init__(self, max_sentence_len, embedding_builder):
+        super().__init__(max_sentence_len, embedding_builder)
+
+    def build(self, first_dropout=0.0, padding='same', filters=4, kernel_size=(1, 1), strides=(1, 1), activation='relu',
+              dense_units=64, second_dropout=0.0):
+        # Input Layer 1 - tweet in right order
+        sentence_input = Input(shape=(self.max_sentence_len,), name="INPUT_1")
+        reverse_sentence_input = Lambda((lambda x: K.reverse(x, axes=0)), name="REVERSE_1")(sentence_input)
+        # Embedding layer
+        embeddings_layer = self.pretrained_embedding_layer()
+        embeddings1 = embeddings_layer(sentence_input)
+        embeddings2 = embeddings_layer(reverse_sentence_input)
+        #embeddings2 = Lambda((lambda M: np.flip(M, axis=-1)), name="REVERSE_1")()
+        concat_embeddings = Concatenate(axis=-1)([embeddings1, embeddings2])
+        width = 1
+
+        X = self.conv_unit_lrelu(activation, concat_embeddings, 0)
+
+        X = self.conv_unit_lrelu(activation, X, 1)
+
+        X = self.conv_unit_lrelu(activation, X, 2)
+
+        X = self.conv_unit_lrelu(activation, X, 3)
+
+        # Flatten
+        X = Flatten()(X)
+
+        # Attention
+        # att_dense = 70*20*1
+        # attention_probs = Dense(att_dense, activation='softmax', name='attention_probs')(X)
+        # attention_mul = Multiply(name='attention_multiply')([X, attention_probs])
+
+        # # First dense layer
+        dense_units = 128
+        X = Dense(units=int(dense_units), activation='relu', name="DENSE_1")(X)
+        X = Dropout(second_dropout, name="DROPOUT_1")(X)
+
+        # # Second dense layer
+        X = Dense(units=int(dense_units / 2), activation='relu', name="DENSE_2")(X)
+        X = Dropout(second_dropout, name="DROPOUT_2")(X)
+        #
+        # # Third layer
+        X = Dense(units=int(dense_units / 4), activation='relu', name="DENSE_3")(X)
+        X = Dropout(second_dropout, name="DROPOUT_3")(X)
+
+        # Final layer
+        X = Dense(3, activation="softmax", name="SOFTMAX")(X)
+        # create the model
+        self.model = Model(input=[sentence_input], output=X)
+
+
+    def conv_unit_lrelu(self, activation, prev_layer, level):
+        level = str(level)
+        X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
+        X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
+        X1 = LeakyReLU(name="ACTIVATION_1_" + level)(X1)
+
+        X2 = Conv1D(filters=64, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
+        X2 = BatchNormalization(name="BATCH_2_" + level)(X2)
+        X2 = LeakyReLU(name="ACTIVATION_2_" + level)(X2)
+
+        X3 = Conv1D(filters=64, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
+        X3 = BatchNormalization(name="BATCH_3_" + level)(X3)
+        X3 = LeakyReLU(name="ACTIVATION_3_" + level)(X3)
+
+        X4 = Conv1D(filters=64, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
+        X4 = BatchNormalization(name="BATCH_4_" + level)(X4)
+        X4 = LeakyReLU(name="ACTIVATION_4_" + level)(X4)
+
+
+        X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
+        X = MaxPooling1D(name="MAX_POOL_1D_" + level)(X)
+        return X
