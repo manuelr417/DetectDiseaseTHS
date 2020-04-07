@@ -318,7 +318,7 @@ class  TweetSentiment1DV2(TweetSentiment1D):
         # create the model
         self.model = Model(input=[sentence_input], output=X)
 
-        def conv_unit_lrelu(self, activation, prev_layer, level):
+    def conv_unit_lrelu(self, activation, prev_layer, level):
             level = str(level)
             X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
             X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
