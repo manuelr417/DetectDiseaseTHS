@@ -55,7 +55,7 @@ class  TweetSentiment1D:
         #X = Dropout(second_dropout, name="DROPOUT_2")(X)
         #
         # # Third layer
-        X = Dense(units=int(dense_units/2), activation='relu', name="DENSE_3")(X)
+        X = Dense(units=int(dense_units/4), activation='relu', name="DENSE_3")(X)
         X = Dropout(second_dropout, name="DROPOUT_3")(X)
 
         # Final layer
