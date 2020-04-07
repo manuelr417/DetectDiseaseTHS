@@ -167,7 +167,7 @@ class  TweetSentiment1D:
     def compile(self, loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']):
         self.model.compile(loss=loss, optimizer=optimizer, metrics=metrics)
 
-    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.1, class_weight=None):
+    def fit(self, X, Y, epochs = 50, batch_size = 32, shuffle=True, callbacks=None, validation_split=0.0, class_weight=None):
         return self.model.fit(X, Y, epochs=epochs, batch_size=batch_size, shuffle=shuffle, callbacks=callbacks,
                        validation_split=validation_split, class_weight=class_weight, verbose=2)
 
