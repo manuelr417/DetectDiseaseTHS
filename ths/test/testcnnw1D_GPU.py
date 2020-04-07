@@ -1,6 +1,8 @@
 from ths.nn.sequences.processcnnw1d import ProcessTweetsCNN1D
 import tensorflow as tf
-def main():
+import sys
+
+def main(epochs):
     print("Working:")
     #P = ProcessTweetsWord2VecOnePass2DCNNv2_1("data/cleantextlabels3.csv", "trained/embedding3.csv")
     P = ProcessTweetsCNN1D("data/cleantextlabels7.csv", "data/glove.6B.50d.txt")
@@ -12,8 +14,14 @@ def main():
     # also good modellstmatt3
     # el 4 con dropout
     # 2, 3 y 4 son buenos
-    P.process("trained/modelcnnincepw6.json", "trained/modelcnnincepw6.h5", plot=False, epochs=16)
+    P.process("trained/modelcnnincepw6.json", "trained/modelcnnincepw6.h5", plot=False, epochs=epochs)
 #joderme
 if __name__ == "__main__":
+
     with tf.device('/GPU:1'):
-        main()
+        argv = sys.argv
+        if len(argv) > 1:
+            epochs = int(argv[1])
+        else:
+            epochs = 16
+        main(epochs)
