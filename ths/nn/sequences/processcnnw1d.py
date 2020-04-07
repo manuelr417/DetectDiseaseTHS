@@ -156,8 +156,8 @@ class ProcessTweetsCNN1D:
         #NN = TweetSentimentCNN(trim_size, G)
         #print("Build GRU")
         #NN = TweetSentimentGRUSM(max_len, G)
-        NN = TweetSentiment1D(trim_size, G)
-        #NN = TweetSentiment1DRev(trim_size, G)
+        #NN = TweetSentiment1D(trim_size, G)
+        NN = TweetSentiment1DRev(trim_size, G)
 
 
 
