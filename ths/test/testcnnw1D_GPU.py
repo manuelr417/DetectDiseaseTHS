@@ -15,7 +15,7 @@ def main(epochs):
     # also good modellstmatt3
     # el 4 con dropout
     # 2, 3 y 4 son buenos
-    P.process("trained/modelcnnincepw6.json", "trained/modelcnnincepw6.h5", plot=False, epochs=epochs, vect_dimensions=100)
+    P.process("trained/modelcnnincepw7.json", "trained/modelcnnincepw7.h5", plot=False, epochs=epochs, vect_dimensions=100)
 #joderme
 if __name__ == "__main__":
 
