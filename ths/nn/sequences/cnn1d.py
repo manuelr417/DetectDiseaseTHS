@@ -46,7 +46,7 @@ class  TweetSentiment1D:
 
 
         # # First dense layer
-        dense_units = 1024
+        dense_units = 2048
         X = Dense(units=int(dense_units), activation='relu', name="DENSE_1")(X)
         X = Dropout(second_dropout, name="DROPOUT_1")(X)
 
