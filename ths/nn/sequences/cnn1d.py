@@ -35,19 +35,19 @@ class  TweetSentiment1D:
         width = 1
 
         print("DEBUG: embedding.shape: ", embeddings1.shape)
-        X = self.conv_unit_lrelu(activation, embeddings1, 0, 32)
+        X = self.conv_unit_lrelu_skip(activation, embeddings1, 0, 32)
 
         print("DEBUG: conv 1 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 1, 64)
+        X = self.conv_unit_lrelu_skip(activation, X, 1, 64)
 
         print("DEBUG: conv 2 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 2, 128)
+        X = self.conv_unit_lrelu_skip(activation, X, 2, 128)
 
         print("DEBUG: conv 3 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 3, 256)
+        X = self.conv_unit_lrelu_skip(activation, X, 3, 256)
 
         print("DEBUG: conv 4 X.shape: ", X.shape)
 
@@ -161,6 +161,35 @@ class  TweetSentiment1D:
         X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
         X = MaxPooling1D(name="MAX_POOL_1D_" + level)(X)
         return X
+
+    def conv_unit_lrelu_skip(self, activation, prev_layer, level, filters=64):
+        level = str(level)
+        X1 = Conv1D(filters=filters, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
+        X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
+        S1 = BatchNormalization(name="BATCH_1_a_" + level)(X1)
+        X1 = LeakyReLU(name="ACTIVATION_1_" + level)(X1)
+
+        X2 = Conv1D(filters=filters, kernel_size=3, strides=1, padding='same', name="CONV_2_" + level)(prev_layer)
+        X2 = BatchNormalization(name="BATCH_2_" + level)(X2)
+        S2 = BatchNormalization(name="BATCH_2_a_" + level)(X2)
+
+        X2 = LeakyReLU(name="ACTIVATION_2_" + level)(X2)
+
+        X3 = Conv1D(filters=filters, kernel_size=5, strides=1, padding='same', name="CONV_3_" + level)(prev_layer)
+        X3 = BatchNormalization(name="BATCH_3_" + level)(X3)
+        X3 = Concatenate(name="CONCAT_skip1" + level)([S1, X3])
+        X3 = LeakyReLU(name="ACTIVATION_3_" + level)(X3)
+
+        X4 = Conv1D(filters=filters, kernel_size=7, strides=1, padding='same', name="CONV_4_" + level)(prev_layer)
+        X4 = BatchNormalization(name="BATCH_4_" + level)(X4)
+        X4 = Concatenate(name="CONCAT_skip2" + level)([S2, X4])
+        X4 = LeakyReLU(name="ACTIVATION_4_" + level)(X4)
+
+
+        X = Concatenate(name="CONCAT_" + level)([X1, X2, X3, X4])
+        X = MaxPooling1D(name="MAX_POOL_1D_" + level)(X)
+        return X
+
     def pretrained_embedding_layer(self):
         # create Keras embedding layer
         word_to_idx, idx_to_word, word_embeddings = self.embedding_builder.read_embedding()
