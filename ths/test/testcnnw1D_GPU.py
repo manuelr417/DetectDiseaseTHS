@@ -7,7 +7,7 @@ def main(epochs):
     #P = ProcessTweetsWord2VecOnePass2DCNNv2_1("data/cleantextlabels3.csv", "trained/embedding3.csv")
     #P = ProcessTweetsCNN1D("data/cleantextlabels7.csv", "data/glove.6B.50d.txt")
     #P = ProcessTweetsWord2VecTwoPassLSTMv2_1("data/cleantextlabels4.csv", "trained/embedding3-50d.csv")
-    P = ProcessTweetsCNN1D("data/cleantextlabels7.csv", "data/glove.6B.100d.txt")
+    P = ProcessTweetsCNN1D("data/cleantextlabels8.csv", "data/glove.6B.100d.txt")
 
     #Bueno el model12cnnv2
     # Excelente el de modellstmatt1 con attention
