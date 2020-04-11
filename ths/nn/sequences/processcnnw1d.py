@@ -181,7 +181,7 @@ class ProcessTweetsCNN1D:
         #class_weight = {0: 0.67, 1: 0.33}
         #class_weight = None
         #history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=32, callbacks=[callback], class_weight=class_weight_dictionary)
-        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=64, class_weight=class_weight_dictionary, validation_split=0.2)
+        history = NN.fit(X_train, Y_train, epochs=epochs, batch_size=64, class_weight=class_weight_dictionary, validation_split=0.3)
 
         print("Model trained")
         print("Predicting")
