@@ -18,6 +18,12 @@ class  TweetSentiment1D:
         self.embedding_builder = embedding_builder
         self.model = None
 
+    def skip_conn(self, X, filters, level):
+        C = Conv1D(filters=filters, kernel_size=1, strides=1, padding='same', name= ("1x1CONV_Skip_" + level))(X)
+        C = BatchNormalization(name="BATCH_Skip_" + level)(C)
+        return C
+
+
     def build(self, first_dropout=0.0, padding='same', filters=4, kernel_size=(1,1), strides=(1,1), activation='relu',
               dense_units=64, second_dropout=0.0):
 
@@ -28,13 +34,23 @@ class  TweetSentiment1D:
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
 
+        print("DEBUG: embedding.shape: ", embeddings1.output_shape)
         X = self.conv_unit_lrelu(activation, embeddings1, 0, 32)
+
+        print("DEBUG: conv 1 X.shape: ", X.output_shape)
 
         X = self.conv_unit_lrelu(activation, X, 1, 64)
 
+        print("DEBUG: conv 2 X.shape: ", X.output_shape)
+
         X = self.conv_unit_lrelu(activation, X, 2, 128)
 
+        print("DEBUG: conv 3 X.shape: ", X.output_shape)
+
         X = self.conv_unit_lrelu(activation, X, 3, 256)
+
+        print("DEBUG: conv 4 X.shape: ", X.output_shape)
+
 
         #Flatten
         X = Flatten()(X)
@@ -100,7 +116,7 @@ class  TweetSentiment1D:
         X = MaxPooling1D(name="MAX_POOL_1D_" + level)(X)
         return X
 
-    def conv_unit_skip_connect(self, activation, prev_layer, level):
+    def conv_unit_skip_connect(self, activation, prev_layer, target, level):
         level = str(level)
         X1 = Conv1D(filters=64, kernel_size=1, strides=1, padding='same', name="CONV_1_" + level)(prev_layer)
         X1 = BatchNormalization(name="BATCH_1_" + level)(X1)
