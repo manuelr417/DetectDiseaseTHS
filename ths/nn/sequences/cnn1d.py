@@ -34,22 +34,22 @@ class  TweetSentiment1D:
         embeddings1 = embeddings_layer(sentence_input)
         width = 1
 
-        print("DEBUG: embedding.shape: ", embeddings1.output_shape)
+        print("DEBUG: embedding.shape: ", embeddings1.shape)
         X = self.conv_unit_lrelu(activation, embeddings1, 0, 32)
 
-        print("DEBUG: conv 1 X.shape: ", X.output_shape)
+        print("DEBUG: conv 1 X.shape: ", X.shape)
 
         X = self.conv_unit_lrelu(activation, X, 1, 64)
 
-        print("DEBUG: conv 2 X.shape: ", X.output_shape)
+        print("DEBUG: conv 2 X.shape: ", X.shape)
 
         X = self.conv_unit_lrelu(activation, X, 2, 128)
 
-        print("DEBUG: conv 3 X.shape: ", X.output_shape)
+        print("DEBUG: conv 3 X.shape: ", X.shape)
 
         X = self.conv_unit_lrelu(activation, X, 3, 256)
 
-        print("DEBUG: conv 4 X.shape: ", X.output_shape)
+        print("DEBUG: conv 4 X.shape: ", X.shape)
 
 
         #Flatten
