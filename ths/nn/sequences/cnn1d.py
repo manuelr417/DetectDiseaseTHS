@@ -35,19 +35,19 @@ class  TweetSentiment1D:
         width = 1
 
         print("DEBUG: embedding.shape: ", embeddings1.shape)
-        X = self.conv_unit_lrelu(activation, embeddings1, 0, 32)
+        X = self.conv_unit_lrelu_skip(activation, embeddings1, 0, 32)
 
         print("DEBUG: conv 1 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 1, 64)
+        X = self.conv_unit_lrelu_skip(activation, X, 1, 64)
 
         print("DEBUG: conv 2 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 2, 128)
+        X = self.conv_unit_lrelu_skip(activation, X, 2, 128)
 
         print("DEBUG: conv 3 X.shape: ", X.shape)
 
-        X = self.conv_unit_lrelu(activation, X, 3, 256)
+        X = self.conv_unit_lrelu_skip(activation, X, 3, 256)
 
         print("DEBUG: conv 4 X.shape: ", X.shape)
 
